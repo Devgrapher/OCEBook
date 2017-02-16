@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion = 25
+    buildToolsVersion = "25.0.2"
+
+    defaultConfig {
+        applicationId = "com.devgrapher.ocebook"
+        minSdkVersion 24
+        targetSdkVersion 25
+        jackOptions {
+            enabled true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = [
+                    './src/main/java',
+                    '../../readium-sdk/Platform/Android/lib/src/main/java'
+            ]
+            jniLibs.srcDirs = [
+                    '../../readium-sdk/Platform/Android/epub3/libs'
+            ]
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled = false
+        }
+        release {
+            minifyEnabled = true
+        }
+    }
+}
