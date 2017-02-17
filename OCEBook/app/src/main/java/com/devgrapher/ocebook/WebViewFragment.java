@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
@@ -35,6 +36,7 @@ import org.readium.sdk.android.components.navigation.NavigationPoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -146,6 +148,23 @@ public class WebViewFragment extends Fragment {
         mWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
         mWebView.setWebViewClient(new ReadiumWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
+
+        mWebView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_UP:
+                        if (event.getX() < v.getWidth() / 2) {
+                            Log.d(TAG, "Touch left");
+                            mReadiumJSApi.openPageLeft();
+                        } else {
+                            Log.d(TAG, "Touch right");
+                            mReadiumJSApi.openPageRight();
+                        }
+                }
+                return false;
+            }
+        });
     }
 
     private void intReadium() {
@@ -309,9 +328,9 @@ public class WebViewFragment extends Fragment {
 
             getActivity().runOnUiThread(() -> {
                 final Page page = openPages.get(0);
-                mPageInfoTextView.setText("" +
-                        page.getSpineItemPageIndex() + 1 + " / " +
-                        page.getSpineItemPageCount());
+                mPageInfoTextView.setText(String.format(Locale.getDefault(), "%d / %d",
+                        page.getSpineItemPageIndex() + 1,
+                        page.getSpineItemPageCount()));
                 SpineItem spineItem = mPackage.getSpineItem(page
                         .getIdref());
                 boolean isFixedLayout = spineItem

@@ -17,7 +17,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:id="@+id/tv_page_info"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:text="1 / 10"
+        android:textSize="14sp"
         android:textAlignment="center"
-        android:id="@+id/tv_page_info"/>
+        android:fontFamily="sans-serif" />
 
 </LinearLayout>
