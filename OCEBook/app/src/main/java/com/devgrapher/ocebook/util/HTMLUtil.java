@@ -217,8 +217,8 @@ public class HTMLUtil {
 	// path = path.substring(1);
 	// }
 	//
-	// path = MessageFormat.format("http://{0}:{1}/{2}", EpubServer.HTTP_HOST,
-	// ""+EpubServer.HTTP_PORT, path);
+	// path = MessageFormat.format("http://{0}:{1}/{2}", WebServer.HTTP_HOST,
+	// ""+WebServer.HTTP_PORT, path);
 	//
 	// fragment = fragment.substring(0, p0) + path + fragment.substring(p1);
 	// }

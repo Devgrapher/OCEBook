@@ -1,10 +1,10 @@
-package com.devgrapher.ocebook.util;
+package com.devgrapher.ocebook.readium;
 
 /**
  * Created by Brent on 2/16/17.
  */
 
-public class EpubConstants {
+public class Constants {
     public static final String ASSET_PREFIX = "file:///android_asset/readium-shared-js/";
     public static final String READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html";
 

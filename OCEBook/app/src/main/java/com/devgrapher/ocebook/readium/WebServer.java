@@ -27,7 +27,7 @@
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE
 
-package com.devgrapher.ocebook.util;
+package com.devgrapher.ocebook.readium;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,6 +49,7 @@ import org.readium.sdk.android.util.ResourceInputStream;
 
 import android.util.Log;
 
+import com.devgrapher.ocebook.util.ByteRangeInputStream;
 import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
@@ -58,14 +59,14 @@ import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 /**
  * This small web server will serve media files such as audio and video.
  */
-public class EpubServer implements HttpServerRequestCallback {
+public class WebServer implements HttpServerRequestCallback {
 
 	public interface DataPreProcessor {
 		byte[] handle(byte[] data, String mime, String uriPath,
 				ManifestItem item);
 	}
 
-	private static final String TAG = "EpubServer";
+	private static final String TAG = "WebServer";
 	public static final String HTTP_HOST = "127.0.0.1";
 	public static final int HTTP_PORT = 8080;
 	/**
@@ -116,8 +117,8 @@ public class EpubServer implements HttpServerRequestCallback {
 	String mHostName;
 	int mPortNumber;
 
-	public EpubServer(String host, int port, Package pckg,
-			DataPreProcessor dataPreProcessor) {
+	public WebServer(String host, int port, Package pckg,
+					 DataPreProcessor dataPreProcessor) {
 
 		this.mHostName = host;
 		this.mPortNumber = port;
@@ -134,6 +135,10 @@ public class EpubServer implements HttpServerRequestCallback {
 
 	Package getPackage() {
 		return mPackage;
+	}
+
+	public static String getHttpPrefix() {
+		return "http://" + HTTP_HOST + ":" + HTTP_PORT;
 	}
 
 	public void startServer() {
@@ -174,7 +179,7 @@ public class EpubServer implements HttpServerRequestCallback {
                     + request.getQuery().get(value) + "'");
         }
 
-		String httpPrefix = "http://" + HTTP_HOST + ":" + HTTP_PORT + "/";
+		String httpPrefix = getHttpPrefix();
 		int iHttpPrefix = uri.indexOf(httpPrefix);
 		uri = iHttpPrefix == 0 ? uri.substring(httpPrefix.length()) : uri;
 		uri = uri.startsWith("/") ? uri.substring(1) : uri;
