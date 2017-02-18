@@ -11,9 +11,9 @@ import org.readium.sdk.android.Package;
 
 public class ReadiumServer {
     private static final String TAG = ReadiumServer.class.toString();
-    private WebServer mServer;
-    private ScriptProcessor mScriptProcessor;
-    private Package mPackage;
+    private final WebServer mServer;
+    private final ScriptProcessor mScriptProcessor;
+    private final Package mPackage;
 
     private final WebServer.DataPreProcessor dataPreProcessor =
             new WebServer.DataPreProcessor() {

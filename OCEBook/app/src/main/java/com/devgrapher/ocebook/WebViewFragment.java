@@ -18,6 +18,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import com.devgrapher.ocebook.readium.TocManager;
 import com.devgrapher.ocebook.readium.ScriptProcessor;
 import com.devgrapher.ocebook.readium.ReadiumServer;
 import com.devgrapher.ocebook.model.ContainerHolder;
@@ -30,15 +31,11 @@ import com.devgrapher.ocebook.model.ViewerSettings;
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.Package;
 import org.readium.sdk.android.SpineItem;
-import org.readium.sdk.android.components.navigation.NavigationElement;
-import org.readium.sdk.android.components.navigation.NavigationPoint;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -59,7 +56,7 @@ public class WebViewFragment extends Fragment {
     private ViewerSettings mViewerSettings;
     private ReadiumJSApi mReadiumJSApi;
     private ReadiumServer mReadiumServer;
-    private List<NavigationPoint> mNavPoints;
+    private TocManager mTocManager;
 
     private WebView mWebView;
     private TextView mPageInfoTextView;
@@ -109,11 +106,6 @@ public class WebViewFragment extends Fragment {
         initWebView();
         intReadium();
 
-        //TODO: TEST 작성
-        mNavPoints = flatNavigationElement(mPackage.getTableOfContents())
-                .filter(e -> e instanceof NavigationPoint)
-                .map(e -> (NavigationPoint)e)
-                .collect(Collectors.toList());
 
         mViewerSettings = new ViewerSettings(
                 ViewerSettings.SyntheticSpreadMode.AUTO,
@@ -128,14 +120,10 @@ public class WebViewFragment extends Fragment {
 
         mReadiumServer.start();
 
+        mTocManager = new TocManager(mPackage);
         return view;
     }
 
-    public Stream<NavigationElement> flatNavigationElement(final NavigationElement elem) {
-        return Stream.concat(
-                Stream.of(elem),
-                elem.getChildren().stream().flatMap(e -> flatNavigationElement(e)));
-    }
 
     private void initWebView() {
         if ((getContext().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE)
@@ -307,15 +295,12 @@ public class WebViewFragment extends Fragment {
         @Override
         public void onReaderInitialized() {
             getActivity().runOnUiThread(() -> {
-                if (mNavPoints.size() == 0)
-                    return;
-
-                NavigationPoint nav = mNavPoints.get(0);
-                OpenPageRequest openPageRequest =
-                        OpenPageRequest.fromContentUrl(nav.getContent(),
-                                mPackage.getTableOfContents().getSourceHref());
-
-                mReadiumJSApi.openBook(mPackage, mViewerSettings, openPageRequest);
+                mPackage.getSpineItems().stream()
+                        .findAny()
+                        .ifPresent(item -> {
+                            mReadiumJSApi.openBook(mPackage, mViewerSettings,
+                                    OpenPageRequest.fromIdref(item.getIdRef()));
+                        });
             });
         }
 
