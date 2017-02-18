@@ -3,7 +3,6 @@ package com.devgrapher.ocebook;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -18,14 +17,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
-import com.devgrapher.ocebook.readium.TocManager;
-import com.devgrapher.ocebook.readium.ScriptProcessor;
-import com.devgrapher.ocebook.readium.ReadiumServer;
+import com.devgrapher.ocebook.readium.ReadiumService;
 import com.devgrapher.ocebook.model.ContainerHolder;
 import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
-import com.devgrapher.ocebook.model.ReadiumJSApi;
 import com.devgrapher.ocebook.model.ViewerSettings;
 
 import org.readium.sdk.android.Container;
@@ -49,19 +45,13 @@ import java.util.Locale;
 public class WebViewFragment extends Fragment {
     private static final String TAG = WebViewFragment.class.toString();
     private static final String ARG_CONTAINER_ID = "package";
-    private static final String READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html";
 
     private Package mPackage;
     private OnFragmentInteractionListener mListener;
     private ViewerSettings mViewerSettings;
-    private ReadiumJSApi mReadiumJSApi;
-    private ReadiumServer mReadiumServer;
-    private TocManager mTocManager;
 
     private WebView mWebView;
     private TextView mPageInfoTextView;
-
-    private ScriptProcessor mScriptProcessor;
 
     public WebViewFragment() {
         // Required empty public constructor
@@ -106,21 +96,10 @@ public class WebViewFragment extends Fragment {
         initWebView();
         intReadium();
 
-
         mViewerSettings = new ViewerSettings(
                 ViewerSettings.SyntheticSpreadMode.AUTO,
                 ViewerSettings.ScrollMode.AUTO, 100, 20);
 
-        mReadiumJSApi = new ReadiumJSApi(new ReadiumJSApi.JSLoader() {
-            @Override
-            public void loadJS(String javascript) {
-                mWebView.loadUrl(javascript);
-            }
-        });
-
-        mReadiumServer.start();
-
-        mTocManager = new TocManager(mPackage);
         return view;
     }
 
@@ -130,34 +109,30 @@ public class WebViewFragment extends Fragment {
                 != 0) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
-        mWebView.loadUrl(READER_SKELETON);
+
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setMediaPlaybackRequiresUserGesture(false);
         mWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
         mWebView.setWebViewClient(new ReadiumWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
 
-        mWebView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
+        mWebView.setOnTouchListener((View v, MotionEvent event) -> {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_UP:
                         if (event.getX() < v.getWidth() / 2) {
                             Log.d(TAG, "Touch left");
-                            mReadiumJSApi.openPageLeft();
+                            ReadiumService.getApi().openPageLeft();
                         } else {
                             Log.d(TAG, "Touch right");
-                            mReadiumJSApi.openPageRight();
+                            ReadiumService.getApi().openPageRight();
                         }
                 }
                 return false;
-            }
         });
     }
 
     private void intReadium() {
-        mScriptProcessor = new ScriptProcessor(
-            new ScriptProcessor.ContentProcessorDelegate() {
+        ReadiumService.getInstance().start(new ReadiumService.WebViewDelegate() {
                 @Override
                 public void evaluateJavascript(String script) {
                     getActivity().runOnUiThread(() -> {
@@ -178,15 +153,16 @@ public class WebViewFragment extends Fragment {
                 }
 
                 @Override
-                public void addJavascriptInterface(ScriptProcessor.JsInterface jsInterface,
-                                                   String name) {
+                public void addJavascriptInterface(ReadiumService.JsInterface jsInterface, String name) {
                     mWebView.addJavascriptInterface(jsInterface, name);
                 }
-            }, mPackage);
 
-        mScriptProcessor.setEventListener(new ReadiumJsEventListener());
+                @Override
+                public void loadUrl(String url) {
+                    mWebView.loadUrl(url);
+                }
 
-        mReadiumServer = new ReadiumServer(mScriptProcessor, mPackage);
+            }, new ReadiumPageEventListener(), mPackage);
     }
 
     @Override
@@ -222,8 +198,8 @@ public class WebViewFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        mReadiumServer.stop();
-        mWebView.loadUrl(READER_SKELETON);
+        ReadiumService.getInstance().stop();
+        //TODO: mWebView.loadUrl(READER_SKELETON);
         ((ViewGroup) mWebView.getParent()).removeView(mWebView);
         mWebView.removeAllViews();
         mWebView.clearCache(true);
@@ -272,8 +248,9 @@ public class WebViewFragment extends Fragment {
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
             Log.d(TAG, "-------- interceptRequest: " + req.getUrl().toString());
 
-            WebResourceResponse res = mScriptProcessor.interceptRequest(
-                            req.getUrl().toString());
+            WebResourceResponse res = ReadiumService.getInstance()
+                    .handleWebRequest(req.getUrl().toString());
+
             if (res == null) {
                 return super.shouldInterceptRequest(view, req);
             }
@@ -282,7 +259,7 @@ public class WebViewFragment extends Fragment {
         }
     }
 
-    public final class ReadiumJsEventListener implements ScriptProcessor.JsEventListener {
+    public final class ReadiumPageEventListener implements ReadiumService.PageEventListener {
 
         @Override
         public void onReaderInitialized() {
@@ -290,7 +267,7 @@ public class WebViewFragment extends Fragment {
                 mPackage.getSpineItems().stream()
                         .findAny()
                         .ifPresent(item -> {
-                            mReadiumJSApi.openBook(mPackage, mViewerSettings,
+                            ReadiumService.getApi().openBook(mPackage, mViewerSettings,
                                     OpenPageRequest.fromIdref(item.getIdRef()));
                             mListener.onPackageOpen(mPackage);
                         });

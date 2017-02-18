@@ -1,13 +1,10 @@
 package com.devgrapher.ocebook.readium;
 
 import android.util.Log;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceResponse;
 
-import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.util.HTMLUtil;
 
-import org.json.JSONException;
 import org.readium.sdk.android.ManifestItem;
 import org.readium.sdk.android.Package;
 
@@ -26,38 +23,14 @@ public class ScriptProcessor {
     private static final String TAG = ScriptProcessor.class.toString();
     private static final String UTF_8 = "utf-8";
 
-    private ContentProcessorDelegate mDelegate;
-    private JsEventListener mEventListener;
+    private ReadiumService.WebViewDelegate mDelegate;
     private int mEpubRsoInjectCounter;
     private Package mPackage;
 
-    public void setEventListener(JsEventListener mEventListener) {
-        this.mEventListener = mEventListener;
-    }
 
-    public interface ContentProcessorDelegate {
-        void evaluateJavascript(final String script);
-        InputStream openAsset(String fileName);
-        void addJavascriptInterface(JsInterface jsInterface, String name);
-    }
-
-    public interface JsEventListener {
-        default void onPaginationChanged(PaginationInfo currentPagesInfo) {}
-        default void onSettingsApplied() {}
-        default void onReaderInitialized() {}
-        default void onContentLoaded() {}
-        default void onPageLoaded() {}
-        default void onIsMediaOverlayAvailable(String available) {}
-        default void onMediaOverlayStatusChanged(String status) {}
-        default void onMediaOverlayTTSSpeak() {}
-        default void onMediaOverlayTTSStop() {}
-        default void getBookmarkData(final String bookmarkData) {}
-    }
-
-    public ScriptProcessor(ContentProcessorDelegate delegate, Package pckg) {
+    public ScriptProcessor(ReadiumService.WebViewDelegate delegate, Package pckg) {
         mDelegate = delegate;
         mPackage = pckg;
-        delegate.addJavascriptInterface(new JsInterface(), "LauncherUI");
     }
 
     public byte[] injectEpubHtml(byte[] data) {
@@ -231,63 +204,5 @@ public class ScriptProcessor {
         }
 
         return cleanUrl;
-    }
-
-    public class JsInterface {
-
-        @JavascriptInterface
-        public void onPaginationChanged(String currentPagesInfo) {
-            try {
-                PaginationInfo paginationInfo = PaginationInfo.fromJson(currentPagesInfo);
-                mEventListener.onPaginationChanged(paginationInfo);
-            } catch (JSONException e) {
-                Log.e(TAG, "" + e.getMessage(), e);
-            }
-        }
-
-        @JavascriptInterface
-        public void onSettingsApplied() {
-            mEventListener.onSettingsApplied();
-        }
-
-        @JavascriptInterface
-        public void onReaderInitialized() {
-            mEventListener.onReaderInitialized();
-        }
-
-        @JavascriptInterface
-        public void onContentLoaded() {
-            mEventListener.onContentLoaded();
-        }
-
-        @JavascriptInterface
-        public void onPageLoaded() {
-            mEventListener.onPageLoaded();
-        }
-
-        @JavascriptInterface
-        public void onIsMediaOverlayAvailable(String available) {
-            mEventListener.onIsMediaOverlayAvailable(available);
-        }
-
-        @JavascriptInterface
-        public void onMediaOverlayStatusChanged(String status) {
-            mEventListener.onMediaOverlayStatusChanged(status);
-        }
-
-        @JavascriptInterface
-        public void onMediaOverlayTTSSpeak() {
-            mEventListener.onMediaOverlayTTSSpeak();
-        }
-
-        @JavascriptInterface
-        public void onMediaOverlayTTSStop() {
-            mEventListener.onMediaOverlayTTSStop();
-        }
-
-        @JavascriptInterface
-        public void getBookmarkData(final String bookmarkData) {
-            mEventListener.getBookmarkData(bookmarkData);
-        }
     }
 }

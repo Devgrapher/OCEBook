@@ -18,12 +18,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.devgrapher.ocebook.model.ContainerHolder;
-import com.devgrapher.ocebook.readium.TocManager;
+import com.devgrapher.ocebook.readium.ReadiumService;
+import com.devgrapher.ocebook.readium.TocHelper;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.EPub3;
 import org.readium.sdk.android.Package;
 import org.readium.sdk.android.SdkErrorHandler;
+import org.readium.sdk.android.components.navigation.NavigationPoint;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class ReaderActivity extends AppCompatActivity
@@ -33,8 +37,8 @@ public class ReaderActivity extends AppCompatActivity
 
     private final String TAG = ReaderActivity.class.toString();
     private Container mContainer;
-    private TocManager mTocManager;
     private NavigationView mTocNavView;
+
 
     // TODO: 외부에서 값을 받아와야 함
     private final String BOOK_PATH = "/sdcard/ocebook/alice3.epub";
@@ -128,7 +132,12 @@ public class ReaderActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-
+        Package pckg = mContainer.getDefaultPackage();
+        NavigationPoint nav = TocHelper.getAt(pckg, id);
+        if (nav != null) {
+            ReadiumService.getApi().openContentUrl(
+                    nav.getContent(), pckg.getTableOfContents().getSourceHref());
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -150,10 +159,14 @@ public class ReaderActivity extends AppCompatActivity
     public void onPackageOpen(Package pckg) {
         mTocNavView.getMenu().removeGroup(R.id.menu_group_toc);
 
-        mTocManager = new TocManager(pckg);
-        mTocManager.getTableOfContents()
+        AtomicInteger index = new AtomicInteger(0);
+        TocHelper.flatTableOfContents(pckg)
                 .forEach(e -> {
-                    mTocNavView.getMenu().add(R.id.menu_group_toc, Menu.NONE, Menu.NONE, e.getTitle());
+                    mTocNavView.getMenu().add(
+                            R.id.menu_group_toc,
+                            index.getAndIncrement(),
+                            Menu.NONE,
+                            e.getTitle());
         });
 
         ((TextView) mTocNavView.findViewById(R.id.tv_nav_book_title))
