@@ -2,15 +2,10 @@ package com.devgrapher.ocebook;
 
 import android.Manifest;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -19,13 +14,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.devgrapher.ocebook.model.ContainerHolder;
+import com.devgrapher.ocebook.readium.TocManager;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.EPub3;
+import org.readium.sdk.android.Package;
 import org.readium.sdk.android.SdkErrorHandler;
+
 
 public class ReaderActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -34,6 +33,8 @@ public class ReaderActivity extends AppCompatActivity
 
     private final String TAG = ReaderActivity.class.toString();
     private Container mContainer;
+    private TocManager mTocManager;
+    private NavigationView mTocNavView;
 
     // TODO: 외부에서 값을 받아와야 함
     private final String BOOK_PATH = "/sdcard/ocebook/alice3.epub";
@@ -51,8 +52,8 @@ public class ReaderActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        mTocNavView = (NavigationView) findViewById(R.id.nav_view);
+        mTocNavView.setNavigationItemSelectedListener(this);
 
         if (!checkPermissions())
             return;
@@ -66,9 +67,11 @@ public class ReaderActivity extends AppCompatActivity
         ContainerHolder.getInstance().put(id, mContainer);
 
         FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.add(R.id.webViewFrame, WebViewFragment.newInstance(id));
-        transaction.commit();
+        fragmentManager.beginTransaction()
+                .add(R.id.container_web_fragment, WebViewFragment.newInstance(id))
+                .commit();
+
+
     }
 
     private boolean checkPermissions() {
@@ -125,19 +128,7 @@ public class ReaderActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -156,7 +147,16 @@ public class ReaderActivity extends AppCompatActivity
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onPackageOpen(Package pckg) {
+        mTocNavView.getMenu().removeGroup(R.id.menu_group_toc);
 
+        mTocManager = new TocManager(pckg);
+        mTocManager.getTableOfContents()
+                .forEach(e -> {
+                    mTocNavView.getMenu().add(R.id.menu_group_toc, Menu.NONE, Menu.NONE, e.getTitle());
+        });
+
+        ((TextView) mTocNavView.findViewById(R.id.tv_nav_book_title))
+                .setText(pckg.getTitle());
     }
 }
