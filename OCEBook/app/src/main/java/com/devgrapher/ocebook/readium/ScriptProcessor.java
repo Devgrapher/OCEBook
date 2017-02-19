@@ -23,12 +23,12 @@ public class ScriptProcessor {
     private static final String TAG = ScriptProcessor.class.toString();
     private static final String UTF_8 = "utf-8";
 
-    private ReadiumService.WebViewDelegate mDelegate;
+    private ReadiumContext.WebViewDelegate mDelegate;
     private int mEpubRsoInjectCounter;
     private Package mPackage;
 
 
-    public ScriptProcessor(ReadiumService.WebViewDelegate delegate, Package pckg) {
+    public ScriptProcessor(ReadiumContext.WebViewDelegate delegate, Package pckg) {
         mDelegate = delegate;
         mPackage = pckg;
     }

@@ -17,7 +17,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
-import com.devgrapher.ocebook.readium.ReadiumService;
+import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.model.ContainerHolder;
 import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
@@ -46,9 +46,10 @@ public class WebViewFragment extends Fragment {
     private static final String TAG = WebViewFragment.class.toString();
     private static final String ARG_CONTAINER_ID = "package";
 
-    private Package mPackage;
     private OnFragmentInteractionListener mListener;
     private ViewerSettings mViewerSettings;
+    private Container mContainer;
+    private ReadiumContext mReadiumCtx;
 
     private WebView mWebView;
     private TextView mPageInfoTextView;
@@ -78,10 +79,8 @@ public class WebViewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            Container container = ContainerHolder.getInstance().get(
+            mContainer = ContainerHolder.getInstance().get(
                     getArguments().getLong(ARG_CONTAINER_ID));
-
-            mPackage = container.getDefaultPackage();
         }
     }
 
@@ -121,10 +120,10 @@ public class WebViewFragment extends Fragment {
                     case MotionEvent.ACTION_UP:
                         if (event.getX() < v.getWidth() / 2) {
                             Log.d(TAG, "Touch left");
-                            ReadiumService.getApi().openPageLeft();
+                            mReadiumCtx.getApi().openPageLeft();
                         } else {
                             Log.d(TAG, "Touch right");
-                            ReadiumService.getApi().openPageRight();
+                            mReadiumCtx.getApi().openPageRight();
                         }
                 }
                 return false;
@@ -132,7 +131,7 @@ public class WebViewFragment extends Fragment {
     }
 
     private void intReadium() {
-        ReadiumService.getInstance().start(new ReadiumService.WebViewDelegate() {
+        mReadiumCtx = new ReadiumContext(new ReadiumContext.WebViewDelegate() {
                 @Override
                 public void evaluateJavascript(String script) {
                     getActivity().runOnUiThread(() -> {
@@ -153,7 +152,7 @@ public class WebViewFragment extends Fragment {
                 }
 
                 @Override
-                public void addJavascriptInterface(ReadiumService.JsInterface jsInterface, String name) {
+                public void addJavascriptInterface(ReadiumContext.JsInterface jsInterface, String name) {
                     mWebView.addJavascriptInterface(jsInterface, name);
                 }
 
@@ -162,7 +161,7 @@ public class WebViewFragment extends Fragment {
                     mWebView.loadUrl(url);
                 }
 
-            }, new ReadiumPageEventListener(), mPackage);
+            }, new ReadiumPageEventListener(), mContainer);
     }
 
     @Override
@@ -198,7 +197,7 @@ public class WebViewFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        ReadiumService.getInstance().stop();
+        mReadiumCtx.stop();
         //TODO: mWebView.loadUrl(READER_SKELETON);
         ((ViewGroup) mWebView.getParent()).removeView(mWebView);
         mWebView.removeAllViews();
@@ -218,7 +217,7 @@ public class WebViewFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        void onPackageOpen(Package pckg);
+        void onPackageOpen(ReadiumContext readiumContext);
     }
 
     public final class ReadiumWebViewClient extends WebViewClient {
@@ -248,8 +247,7 @@ public class WebViewFragment extends Fragment {
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
             Log.d(TAG, "-------- interceptRequest: " + req.getUrl().toString());
 
-            WebResourceResponse res = ReadiumService.getInstance()
-                    .handleWebRequest(req.getUrl().toString());
+            WebResourceResponse res = mReadiumCtx.handleWebRequest(req.getUrl().toString());
 
             if (res == null) {
                 return super.shouldInterceptRequest(view, req);
@@ -259,17 +257,18 @@ public class WebViewFragment extends Fragment {
         }
     }
 
-    public final class ReadiumPageEventListener implements ReadiumService.PageEventListener {
+    public final class ReadiumPageEventListener implements ReadiumContext.PageEventListener {
 
         @Override
         public void onReaderInitialized() {
             getActivity().runOnUiThread(() -> {
-                mPackage.getSpineItems().stream()
+                final Package pkcg = mReadiumCtx.getPackage();
+                pkcg.getSpineItems().stream()
                         .findAny()
                         .ifPresent(item -> {
-                            ReadiumService.getApi().openBook(mPackage, mViewerSettings,
+                            mReadiumCtx.getApi().openBook(pkcg, mViewerSettings,
                                     OpenPageRequest.fromIdref(item.getIdRef()));
-                            mListener.onPackageOpen(mPackage);
+                            mListener.onPackageOpen(mReadiumCtx);
                         });
             });
         }
@@ -286,10 +285,10 @@ public class WebViewFragment extends Fragment {
                 mPageInfoTextView.setText(String.format(Locale.getDefault(), "%d / %d",
                         page.getSpineItemPageIndex() + 1,
                         page.getSpineItemPageCount()));
-                SpineItem spineItem = mPackage.getSpineItem(page
+                SpineItem spineItem = mReadiumCtx.getPackage().getSpineItem(page
                         .getIdref());
                 boolean isFixedLayout = spineItem
-                        .isFixedLayout(mPackage);
+                        .isFixedLayout(mReadiumCtx.getPackage());
                 mWebView.getSettings().setBuiltInZoomControls(
                         isFixedLayout);
                 mWebView.getSettings()

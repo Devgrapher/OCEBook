@@ -8,6 +8,7 @@ import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ReadiumJSApi;
 
 import org.json.JSONException;
+import org.readium.sdk.android.Container;
 import org.readium.sdk.android.ManifestItem;
 import org.readium.sdk.android.Package;
 
@@ -15,19 +16,30 @@ import java.io.InputStream;
 
 /**
  * Created by Brent on 2/17/17.
+ *
+ * Hold the context of package opened.
  */
 
-public class ReadiumService {
-    private static final String TAG = ReadiumService.class.toString();
+public class ReadiumContext {
+    private static final String TAG = ReadiumContext.class.toString();
     private static final String READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html";
 
-    private ScriptProcessor mScriptProcessor;
-    private Package mPackage;
-    private WebServer mServer;
-    private ReadiumJSApi mJSApi;
+    private final ScriptProcessor mScriptProcessor;
+    private final Container mContainer;
+    private final Package mPackage;
+    private final WebServer mServer;
+    private final ReadiumJSApi mJSApi;
 
-    private WebViewDelegate mWebViewDelegate;
-    private PageEventListener mEventListener;
+    private final WebViewDelegate mWebViewDelegate;
+    private final PageEventListener mEventListener;
+
+    public ReadiumJSApi getApi() {
+        return mJSApi;
+    }
+
+    public Package getPackage() {
+        return mPackage;
+    }
 
     public interface WebViewDelegate {
         void evaluateJavascript(final String script);
@@ -65,21 +77,12 @@ public class ReadiumService {
         }
     };
 
-    private static final ReadiumService INSTANCE = new ReadiumService();
-
-    public static ReadiumService getInstance() {
-        return INSTANCE;
-    }
-
-    public static ReadiumJSApi getApi() {
-        return getInstance().mJSApi;
-    }
-
-    public void start(WebViewDelegate delegate,
-                      PageEventListener pageEventListener,
-                      Package pckg) {
+    public ReadiumContext(WebViewDelegate delegate,
+                          PageEventListener pageEventListener,
+                          Container container) {
         mWebViewDelegate = delegate;
-        mPackage = pckg;
+        mContainer = container;
+        mPackage = mContainer.getDefaultPackage();
         mEventListener = pageEventListener;
 
         mScriptProcessor = new ScriptProcessor(mWebViewDelegate, mPackage);
@@ -102,8 +105,9 @@ public class ReadiumService {
         mServer.startServer();
     }
 
+    // TODO: move to webservice.
     public void stop() {
-        //delegate.loadUrl(READER_SKELETON);
+        mWebViewDelegate.loadUrl(READER_SKELETON);
         mServer.stop();
     }
 

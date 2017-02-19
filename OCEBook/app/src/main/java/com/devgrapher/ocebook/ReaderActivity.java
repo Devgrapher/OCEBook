@@ -18,7 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.devgrapher.ocebook.model.ContainerHolder;
-import com.devgrapher.ocebook.readium.ReadiumService;
+import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.readium.TocHelper;
 
 import org.readium.sdk.android.Container;
@@ -38,6 +38,7 @@ public class ReaderActivity extends AppCompatActivity
     private final String TAG = ReaderActivity.class.toString();
     private Container mContainer;
     private NavigationView mTocNavView;
+    private ReadiumContext mReadiumCtx;
 
 
     // TODO: 외부에서 값을 받아와야 함
@@ -134,8 +135,8 @@ public class ReaderActivity extends AppCompatActivity
 
         Package pckg = mContainer.getDefaultPackage();
         NavigationPoint nav = TocHelper.getAt(pckg, id);
-        if (nav != null) {
-            ReadiumService.getApi().openContentUrl(
+        if (nav != null && mReadiumCtx != null) {
+            mReadiumCtx.getApi().openContentUrl(
                     nav.getContent(), pckg.getTableOfContents().getSourceHref());
         }
 
@@ -156,11 +157,13 @@ public class ReaderActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPackageOpen(Package pckg) {
+    public void onPackageOpen(ReadiumContext readiumContext) {
+        mReadiumCtx = readiumContext;
+
         mTocNavView.getMenu().removeGroup(R.id.menu_group_toc);
 
         AtomicInteger index = new AtomicInteger(0);
-        TocHelper.flatTableOfContents(pckg)
+        TocHelper.flatTableOfContents(readiumContext.getPackage())
                 .forEach(e -> {
                     mTocNavView.getMenu().add(
                             R.id.menu_group_toc,
@@ -170,6 +173,6 @@ public class ReaderActivity extends AppCompatActivity
         });
 
         ((TextView) mTocNavView.findViewById(R.id.tv_nav_book_title))
-                .setText(pckg.getTitle());
+                .setText(readiumContext.getPackage().getTitle());
     }
 }
