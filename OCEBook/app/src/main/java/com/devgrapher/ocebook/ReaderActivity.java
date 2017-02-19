@@ -3,6 +3,7 @@ package com.devgrapher.ocebook;
 import android.Manifest;
 import android.app.FragmentManager;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import com.devgrapher.ocebook.readium.ObjectHolder;
 import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.readium.TocHelper;
+import com.devgrapher.ocebook.util.PageCounts;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.EPub3;
@@ -27,20 +29,29 @@ import org.readium.sdk.android.Package;
 import org.readium.sdk.android.SdkErrorHandler;
 import org.readium.sdk.android.components.navigation.NavigationPoint;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class ReaderActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         SdkErrorHandler,
-        WebViewFragment.OnFragmentInteractionListener {
+        WebViewFragment.OnFragmentInteractionListener,
+        HiddenRendererFragment.OnFragmentInteractionListener {
 
     private final String TAG = ReaderActivity.class.toString();
     private Container mContainer;
-    private NavigationView mTocNavView;
     private ReadiumContext mReadiumCtx;
+    private PageCounts mPageCounts;
+    private int mCurrentSpinePage;
+    private int mCurrentSpine;
+
     private static long sContainerId;
 
+    private NavigationView mTocNavView;
+    private TextView mPageInfoTextView;
 
     // TODO: 외부에서 값을 받아와야 함
     private final String BOOK_PATH = "/sdcard/ocebook/alice3.epub";
@@ -60,6 +71,8 @@ public class ReaderActivity extends AppCompatActivity
 
         mTocNavView = (NavigationView) findViewById(R.id.nav_view);
         mTocNavView.setNavigationItemSelectedListener(this);
+
+        mPageInfoTextView = (TextView) findViewById(R.id.tv_page_info);
 
         if (!checkPermissions())
             return;
@@ -81,6 +94,10 @@ public class ReaderActivity extends AppCompatActivity
         if (fragmentManager.findFragmentById(R.id.container_web_fragment) == null) {
             fragmentManager.beginTransaction()
                     .add(R.id.container_web_fragment, WebViewFragment.newInstance(sContainerId))
+                    .commit();
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.container_web_fragment, HiddenRendererFragment.newInstance(sContainerId))
                     .commit();
         }
     }
@@ -185,5 +202,37 @@ public class ReaderActivity extends AppCompatActivity
 
         ((TextView) mTocNavView.findViewById(R.id.tv_nav_book_title))
                 .setText(readiumContext.getPackage().getTitle());
+    }
+
+    @Override
+    public void onPageChanged(int pageIndex, int spineIndex) {
+        mCurrentSpine = spineIndex;
+        mCurrentSpinePage = pageIndex;
+
+        if (mPageCounts != null && !mPageCounts.isUpdating()) {
+            mPageInfoTextView.setText(String.format(Locale.getDefault(), "%d / %d",
+                    mPageCounts.calculateCurrentPage(spineIndex, pageIndex) + 1,
+                    mPageCounts.getTotalCount()));
+        }
+    }
+
+    @Override
+    public void onBrowsePageInProgress(int spineIndex, int totalSpine, int pageCount) {
+        int percent = (int) ((spineIndex + 1) / (float) totalSpine * 100);
+        mPageInfoTextView.setText("" + percent + "%");
+
+        // reset
+        if (spineIndex == 0) {
+            mPageCounts = new PageCounts(totalSpine);
+        }
+
+        // Store page counts for each spine.
+        mPageCounts.updatePage(spineIndex, pageCount);
+
+        // done
+        if (percent == 100) {
+            mPageCounts.updateComplete();
+            onPageChanged(mCurrentSpinePage, mCurrentSpine);
+        }
     }
 }

@@ -44,15 +44,15 @@ import java.util.Locale;
  */
 public class WebViewFragment extends Fragment {
     private static final String TAG = WebViewFragment.class.toString();
-    private static final String ARG_CONTAINER_ID = "package";
+    private static final String ARG_CONTAINER_ID = "container";
 
     private OnFragmentInteractionListener mListener;
-    private ViewerSettings mViewerSettings;
     private Container mContainer;
-    private ReadiumContext mReadiumCtx;
+    // protected to be accessed in HiddenRendererFragment
+    protected ReadiumContext mReadiumCtx;
+    protected ViewerSettings mViewerSettings;
 
     private WebView mWebView;
-    private TextView mPageInfoTextView;
 
     public WebViewFragment() {
         // Required empty public constructor
@@ -90,10 +90,9 @@ public class WebViewFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_web_view, container, false);
         mWebView = (WebView) view.findViewById(R.id.webView);
-        mPageInfoTextView = (TextView) view.findViewById(R.id.tv_page_info);
 
         initWebView();
-        intReadium();
+        initReadium();
 
         mViewerSettings = new ViewerSettings(
                 ViewerSettings.SyntheticSpreadMode.AUTO,
@@ -130,7 +129,7 @@ public class WebViewFragment extends Fragment {
         });
     }
 
-    private void intReadium() {
+    private void initReadium() {
         mReadiumCtx = new ReadiumContext(new ReadiumContext.WebViewDelegate() {
                 @Override
                 public void evaluateJavascript(String script) {
@@ -161,7 +160,7 @@ public class WebViewFragment extends Fragment {
                     mWebView.loadUrl(url);
                 }
 
-            }, new ReadiumPageEventListener(), mContainer);
+            }, createPageEventListener(), mContainer);
 
         ObjectHolder.getInstance().putContext(mReadiumCtx.getId(), mReadiumCtx);
     }
@@ -223,6 +222,7 @@ public class WebViewFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         void onPackageOpen(ReadiumContext readiumContext);
+        void onPageChanged(int pageIndex, int spineIndex);
     }
 
     public final class ReadiumWebViewClient extends WebViewClient {
@@ -262,44 +262,48 @@ public class WebViewFragment extends Fragment {
         }
     }
 
-    public final class ReadiumPageEventListener implements ReadiumContext.PageEventListener {
+    // Create PageEventListener which delivers web browsing events.
+    // This method is meant to be overrided in HiddenReadererFragment.
+    public ReadiumContext.PageEventListener createPageEventListener() {
+        return new ReadiumContext.PageEventListener() {
 
-        @Override
-        public void onReaderInitialized() {
-            getActivity().runOnUiThread(() -> {
-                final Package pkcg = mReadiumCtx.getPackage();
-                pkcg.getSpineItems().stream()
-                        .findAny()
-                        .ifPresent(item -> {
-                            mReadiumCtx.getApi().openBook(pkcg, mViewerSettings,
-                                    OpenPageRequest.fromIdref(item.getIdRef()));
-                            mListener.onPackageOpen(mReadiumCtx);
-                        });
-            });
-        }
+            @Override
+            public void onReaderInitialized() {
+                getActivity().runOnUiThread(() -> {
+                    final Package pkcg = mReadiumCtx.getPackage();
+                    pkcg.getSpineItems().stream()
+                            .findAny()
+                            .ifPresent(item -> {
+                                mReadiumCtx.getApi().openBook(pkcg, mViewerSettings,
+                                        OpenPageRequest.fromIdref(item.getIdRef()));
 
-        @Override
-        public void onPaginationChanged(PaginationInfo currentPagesInfo) {
-            Log.d(TAG, "onPaginationChanged: " + currentPagesInfo);
-            List<Page> openPages = currentPagesInfo.getOpenPages();
-            if (openPages.isEmpty())
-                return;
+                                mListener.onPackageOpen(mReadiumCtx);
+                            });
+                });
+            }
 
-            getActivity().runOnUiThread(() -> {
-                final Page page = openPages.get(0);
-                mPageInfoTextView.setText(String.format(Locale.getDefault(), "%d / %d",
-                        page.getSpineItemPageIndex() + 1,
-                        page.getSpineItemPageCount()));
-                SpineItem spineItem = mReadiumCtx.getPackage().getSpineItem(page
-                        .getIdref());
-                boolean isFixedLayout = spineItem
-                        .isFixedLayout(mReadiumCtx.getPackage());
-                mWebView.getSettings().setBuiltInZoomControls(
-                        isFixedLayout);
-                mWebView.getSettings()
-                        .setDisplayZoomControls(false);
-            });
-        }
+            @Override
+            public void onPaginationChanged(PaginationInfo currentPagesInfo) {
+                Log.d(TAG, "onPaginationChanged: " + currentPagesInfo);
+                List<Page> openPages = currentPagesInfo.getOpenPages();
+                if (openPages.isEmpty())
+                    return;
+
+                getActivity().runOnUiThread(() -> {
+                    final Page page = openPages.get(0);
+                    SpineItem spineItem = mReadiumCtx.getPackage().getSpineItem(page
+                            .getIdref());
+                    boolean isFixedLayout = spineItem
+                            .isFixedLayout(mReadiumCtx.getPackage());
+                    mWebView.getSettings().setBuiltInZoomControls(
+                            isFixedLayout);
+                    mWebView.getSettings()
+                            .setDisplayZoomControls(false);
+
+                    mListener.onPageChanged(page.getSpineItemPageIndex(), page.getSpineItemIndex());
+                });
+            }
+        };
     }
 
 }
