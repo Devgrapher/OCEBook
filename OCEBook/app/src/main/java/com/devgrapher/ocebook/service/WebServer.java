@@ -27,7 +27,7 @@
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE
 
-package com.devgrapher.ocebook.readium;
+package com.devgrapher.ocebook.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class WebServer implements HttpServerRequestCallback {
 
 	private static final String TAG = "WebServer";
 	public static final String HTTP_HOST = "127.0.0.1";
-	public static final int HTTP_PORT = 8080;
+	public static final int HTTP_PORT = 33380;
 	/**
 	 * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
 	 */

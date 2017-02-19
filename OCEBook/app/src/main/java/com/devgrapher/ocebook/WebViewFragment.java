@@ -1,6 +1,7 @@
 package com.devgrapher.ocebook;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -17,12 +18,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import com.devgrapher.ocebook.readium.ObjectHolder;
 import com.devgrapher.ocebook.readium.ReadiumContext;
-import com.devgrapher.ocebook.model.ContainerHolder;
 import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ViewerSettings;
+import com.devgrapher.ocebook.service.ReadimWebServer;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.Package;
@@ -62,7 +64,7 @@ public class WebViewFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param containerId container id held by ContainerHolder.
+     * @param containerId container id held by ObjectHolder.
      * @return A new instance of fragment WebViewFragment.
      */
     public static WebViewFragment newInstance(long containerId) {
@@ -79,7 +81,7 @@ public class WebViewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mContainer = ContainerHolder.getInstance().get(
+            mContainer = ObjectHolder.getInstance().getContainer(
                     getArguments().getLong(ARG_CONTAINER_ID));
         }
     }
@@ -162,6 +164,8 @@ public class WebViewFragment extends Fragment {
                 }
 
             }, new ReadiumPageEventListener(), mContainer);
+
+        ObjectHolder.getInstance().putContext(mReadiumCtx.getId(), mReadiumCtx);
     }
 
     @Override
@@ -204,6 +208,8 @@ public class WebViewFragment extends Fragment {
         mWebView.clearCache(true);
         mWebView.clearHistory();
         mWebView.destroy();
+
+        ObjectHolder.getInstance().removeContext(mReadiumCtx.getId());
     }
 
     /**

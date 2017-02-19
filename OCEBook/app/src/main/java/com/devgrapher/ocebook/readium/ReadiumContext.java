@@ -6,10 +6,10 @@ import android.webkit.WebResourceResponse;
 
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ReadiumJSApi;
+import com.devgrapher.ocebook.service.ReadimWebServer;
 
 import org.json.JSONException;
 import org.readium.sdk.android.Container;
-import org.readium.sdk.android.ManifestItem;
 import org.readium.sdk.android.Package;
 
 import java.io.InputStream;
@@ -27,8 +27,8 @@ public class ReadiumContext {
     private final ScriptProcessor mScriptProcessor;
     private final Container mContainer;
     private final Package mPackage;
-    private final WebServer mServer;
     private final ReadiumJSApi mJSApi;
+    private final ReadimWebServer mWebServer;
 
     private final WebViewDelegate mWebViewDelegate;
     private final PageEventListener mEventListener;
@@ -39,6 +39,10 @@ public class ReadiumContext {
 
     public Package getPackage() {
         return mPackage;
+    }
+
+    public long getId() {
+        return System.identityHashCode(this);
     }
 
     public interface WebViewDelegate {
@@ -61,22 +65,6 @@ public class ReadiumContext {
         default void getBookmarkData(final String bookmarkData) {}
     }
 
-    private final WebServer.DataPreProcessor dataPreProcessor =
-            new WebServer.DataPreProcessor() {
-
-        @Override
-        public byte[] handle(byte[] data, String mime, String uriPath,
-                             ManifestItem item) {
-            if (mime == null
-                    || (!mime.equals("text/html") && !mime.equals("application/xhtml+xml"))) {
-                return null;
-            }
-            Log.d(TAG, "PRE-PROCESSED HTML: " + uriPath);
-
-            return mScriptProcessor.injectEpubHtml(data);
-        }
-    };
-
     public ReadiumContext(WebViewDelegate delegate,
                           PageEventListener pageEventListener,
                           Container container) {
@@ -97,18 +85,13 @@ public class ReadiumContext {
         mWebViewDelegate.loadUrl(READER_SKELETON);
         mWebViewDelegate.addJavascriptInterface(new JsInterface(), "LauncherUI");
 
-        mServer = new WebServer(WebServer.HTTP_HOST,
-                WebServer.HTTP_PORT,
-                mPackage,
-                dataPreProcessor);
-
-        mServer.startServer();
+        mWebServer = new ReadimWebServer();
+        mWebServer.start(mPackage);
     }
 
-    // TODO: move to webservice.
     public void stop() {
         mWebViewDelegate.loadUrl(READER_SKELETON);
-        mServer.stop();
+        mWebServer.stop();
     }
 
     public WebResourceResponse handleWebRequest(String url) {

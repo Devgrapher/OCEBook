@@ -3,6 +3,7 @@ package com.devgrapher.ocebook.readium;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 
+import com.devgrapher.ocebook.service.WebServer;
 import com.devgrapher.ocebook.util.HTMLUtil;
 
 import org.readium.sdk.android.ManifestItem;
@@ -31,30 +32,6 @@ public class ScriptProcessor {
     public ScriptProcessor(ReadiumContext.WebViewDelegate delegate, Package pckg) {
         mDelegate = delegate;
         mPackage = pckg;
-    }
-
-    public byte[] injectEpubHtml(byte[] data) {
-        String htmlText = new String(data, Charset.forName(UTF_8));
-
-        String newHtml = htmlText;
-
-        // Set up the script tags to add to the head
-        String tagsToInjectToHead = Constants.INJECT_HEAD_EPUB_RSO_1
-                // Slightly change fake script src url with an
-                // increasing count to prevent caching of the
-                // request
-                + String.format(Constants.INJECT_HEAD_EPUB_RSO_2,
-                ++mEpubRsoInjectCounter);
-        // Checks for the existance of MathML => request
-        // MathJax payload
-        if (newHtml.contains("<math") || newHtml.contains("<m:math")) {
-            tagsToInjectToHead += Constants.INJECT_HEAD_MATHJAX;
-        }
-
-        newHtml = HTMLUtil.htmlByInjectingIntoHead(newHtml,
-                tagsToInjectToHead);
-
-        return newHtml.getBytes();
     }
 
     public WebResourceResponse interceptRequest(String url) {
@@ -204,5 +181,33 @@ public class ScriptProcessor {
         }
 
         return cleanUrl;
+    }
+
+    public static class ScriptInjector {
+        private int mEpubRsoInjectCounter;
+
+        public byte[] injectEpubHtml(byte[] data) {
+            String htmlText = new String(data, Charset.forName(UTF_8));
+
+            String newHtml = htmlText;
+
+            // Set up the script tags to add to the head
+            String tagsToInjectToHead = Constants.INJECT_HEAD_EPUB_RSO_1
+                    // Slightly change fake script src url with an
+                    // increasing count to prevent caching of the
+                    // request
+                    + String.format(Constants.INJECT_HEAD_EPUB_RSO_2,
+                    ++mEpubRsoInjectCounter);
+            // Checks for the existance of MathML => request
+            // MathJax payload
+            if (newHtml.contains("<math") || newHtml.contains("<m:math")) {
+                tagsToInjectToHead += Constants.INJECT_HEAD_MATHJAX;
+            }
+
+            newHtml = HTMLUtil.htmlByInjectingIntoHead(newHtml,
+                    tagsToInjectToHead);
+
+            return newHtml.getBytes();
+        }
     }
 }

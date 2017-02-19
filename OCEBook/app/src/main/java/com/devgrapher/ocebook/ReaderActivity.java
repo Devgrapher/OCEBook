@@ -17,7 +17,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.devgrapher.ocebook.model.ContainerHolder;
+import com.devgrapher.ocebook.readium.ObjectHolder;
 import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.readium.TocHelper;
 
@@ -69,14 +69,12 @@ public class ReaderActivity extends AppCompatActivity
 
         Log.d(ReaderActivity.class.toString(), mContainer.getName());
         Long id = mContainer.getNativePtr();
-        ContainerHolder.getInstance().put(id, mContainer);
+        ObjectHolder.getInstance().putContainer(id, mContainer);
 
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .add(R.id.container_web_fragment, WebViewFragment.newInstance(id))
                 .commit();
-
-
     }
 
     private boolean checkPermissions() {
@@ -99,7 +97,7 @@ public class ReaderActivity extends AppCompatActivity
         }
 
         if (mContainer != null) {
-            ContainerHolder.getInstance().remove(mContainer.getNativePtr());
+            ObjectHolder.getInstance().removeContainer(mContainer.getNativePtr());
             EPub3.closeBook(mContainer);
             mContainer = null;
         }
