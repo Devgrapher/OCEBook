@@ -27,7 +27,7 @@
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE
 
-package com.devgrapher.ocebook.service;
+package com.devgrapher.ocebook.server;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -76,7 +76,7 @@ public class WebServer implements HttpServerRequestCallback {
 
 	private final SimpleDateFormat mHTTPDateFormat;
 
-	private final Package mPackage;
+	private Package mPackage;
 
 	private final DataPreProcessor dataPreProcessor;
 
@@ -117,12 +117,10 @@ public class WebServer implements HttpServerRequestCallback {
 	String mHostName;
 	int mPortNumber;
 
-	public WebServer(String host, int port, Package pckg,
-					 DataPreProcessor dataPreProcessor) {
+	public WebServer(String host, int port, DataPreProcessor dataPreProcessor) {
 
 		this.mHostName = host;
 		this.mPortNumber = port;
-		this.mPackage = pckg;
 		this.dataPreProcessor = dataPreProcessor;
 		this.mHttpServer = new AsyncHttpServer();
 		this.mAsyncServer = new AsyncServer();
@@ -141,7 +139,9 @@ public class WebServer implements HttpServerRequestCallback {
 		return "http://" + HTTP_HOST + ":" + HTTP_PORT;
 	}
 
-	public void startServer() {
+	public void startServer(Package pckg) {
+		mPackage = pckg;
+
 		try {
 			mAsyncServer.listen(InetAddress.getByName(mHostName), mPortNumber,
 					mHttpServer.getListenCallback());
@@ -153,6 +153,7 @@ public class WebServer implements HttpServerRequestCallback {
 	public void stop() {
 		mHttpServer.stop();
 		mAsyncServer.stop();
+		mPackage = null;
 	}
 
 	private final Object criticalSectionSynchronizedLock = new Object();
@@ -195,6 +196,12 @@ public class WebServer implements HttpServerRequestCallback {
 		}
 
 		Package pckg = getPackage();
+		if (pckg == null) {
+			response.code(503);
+			response.send("Error 503, package not found");
+			return;
+
+		}
 
 		int contentLength = -1;
 		synchronized (criticalSectionSynchronizedLock) {

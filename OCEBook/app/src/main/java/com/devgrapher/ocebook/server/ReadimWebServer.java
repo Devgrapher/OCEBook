@@ -1,4 +1,4 @@
-package com.devgrapher.ocebook.service;
+package com.devgrapher.ocebook.server;
 
 import android.util.Log;
 
@@ -14,7 +14,6 @@ import org.readium.sdk.android.Package;
 public class ReadimWebServer {
     private static final String TAG = ReadimWebServer.class.toString();
     private ScriptProcessor.ScriptInjector mScriptInjector = new ScriptProcessor.ScriptInjector();
-    private WebServer mWebServer;
 
     private final WebServer.DataPreProcessor dataPreProcessor =
             new WebServer.DataPreProcessor() {
@@ -32,12 +31,14 @@ public class ReadimWebServer {
                 }
             };
 
+    private WebServer mWebServer = new WebServer(WebServer.HTTP_HOST, WebServer.HTTP_PORT, dataPreProcessor);
+
     public void start(Package pckg) {
-        mWebServer = new WebServer(WebServer.HTTP_HOST, WebServer.HTTP_PORT, pckg, dataPreProcessor);
-        mWebServer.startServer();
+        mWebServer.stop();
+        mWebServer.startServer(pckg);
     }
 
-    public void stop() {
+    public void reset() {
         mWebServer.stop();
     }
 }

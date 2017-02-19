@@ -39,6 +39,7 @@ public class ReaderActivity extends AppCompatActivity
     private Container mContainer;
     private NavigationView mTocNavView;
     private ReadiumContext mReadiumCtx;
+    private static long sContainerId;
 
 
     // TODO: 외부에서 값을 받아와야 함
@@ -63,18 +64,25 @@ public class ReaderActivity extends AppCompatActivity
         if (!checkPermissions())
             return;
 
-        mContainer = EPub3.openBook(BOOK_PATH);
-        if (mContainer == null)
-            return;
+        // Check if the book opened before.
+        mContainer = ObjectHolder.getInstance().getContainer(sContainerId);
+        if (mContainer == null) {
+            mContainer = EPub3.openBook(BOOK_PATH);
+            if (mContainer == null)
+                return;
+
+            sContainerId = mContainer.getNativePtr();
+            ObjectHolder.getInstance().putContainer(sContainerId, mContainer);
+        }
 
         Log.d(ReaderActivity.class.toString(), mContainer.getName());
-        Long id = mContainer.getNativePtr();
-        ObjectHolder.getInstance().putContainer(id, mContainer);
 
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .add(R.id.container_web_fragment, WebViewFragment.newInstance(id))
-                .commit();
+        if (fragmentManager.findFragmentById(R.id.container_web_fragment) == null) {
+            fragmentManager.beginTransaction()
+                    .add(R.id.container_web_fragment, WebViewFragment.newInstance(sContainerId))
+                    .commit();
+        }
     }
 
     private boolean checkPermissions() {
@@ -85,6 +93,11 @@ public class ReaderActivity extends AppCompatActivity
             return false;
         }
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -99,6 +112,7 @@ public class ReaderActivity extends AppCompatActivity
         if (mContainer != null) {
             ObjectHolder.getInstance().removeContainer(mContainer.getNativePtr());
             EPub3.closeBook(mContainer);
+            sContainerId = 0;
             mContainer = null;
         }
     }
@@ -131,11 +145,10 @@ public class ReaderActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Package pckg = mContainer.getDefaultPackage();
-        NavigationPoint nav = TocHelper.getAt(pckg, id);
+        NavigationPoint nav = TocHelper.getAt(mReadiumCtx.getPackage(), id);
         if (nav != null && mReadiumCtx != null) {
             mReadiumCtx.getApi().openContentUrl(
-                    nav.getContent(), pckg.getTableOfContents().getSourceHref());
+                    nav.getContent(),mReadiumCtx.getPackage().getTableOfContents().getSourceHref());
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

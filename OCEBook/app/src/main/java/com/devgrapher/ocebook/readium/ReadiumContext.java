@@ -6,7 +6,7 @@ import android.webkit.WebResourceResponse;
 
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ReadiumJSApi;
-import com.devgrapher.ocebook.service.ReadimWebServer;
+import com.devgrapher.ocebook.server.ReadimWebServer;
 
 import org.json.JSONException;
 import org.readium.sdk.android.Container;
@@ -24,11 +24,12 @@ public class ReadiumContext {
     private static final String TAG = ReadiumContext.class.toString();
     private static final String READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html";
 
+    private static ReadimWebServer sWebServer = new ReadimWebServer();
+
     private final ScriptProcessor mScriptProcessor;
     private final Container mContainer;
     private final Package mPackage;
     private final ReadiumJSApi mJSApi;
-    private final ReadimWebServer mWebServer;
 
     private final WebViewDelegate mWebViewDelegate;
     private final PageEventListener mEventListener;
@@ -85,13 +86,12 @@ public class ReadiumContext {
         mWebViewDelegate.loadUrl(READER_SKELETON);
         mWebViewDelegate.addJavascriptInterface(new JsInterface(), "LauncherUI");
 
-        mWebServer = new ReadimWebServer();
-        mWebServer.start(mPackage);
+        sWebServer.start(mPackage);
     }
 
-    public void stop() {
+    public void dispose() {
         mWebViewDelegate.loadUrl(READER_SKELETON);
-        mWebServer.stop();
+        sWebServer.reset();
     }
 
     public WebResourceResponse handleWebRequest(String url) {

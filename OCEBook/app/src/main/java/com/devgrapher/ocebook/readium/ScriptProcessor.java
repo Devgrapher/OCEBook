@@ -3,7 +3,7 @@ package com.devgrapher.ocebook.readium;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 
-import com.devgrapher.ocebook.service.WebServer;
+import com.devgrapher.ocebook.server.WebServer;
 import com.devgrapher.ocebook.util.HTMLUtil;
 
 import org.readium.sdk.android.ManifestItem;

@@ -1,7 +1,6 @@
 package com.devgrapher.ocebook;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -24,7 +23,6 @@ import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ViewerSettings;
-import com.devgrapher.ocebook.service.ReadimWebServer;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.Package;
@@ -201,8 +199,9 @@ public class WebViewFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        mReadiumCtx.stop();
-        //TODO: mWebView.loadUrl(READER_SKELETON);
+        if (mReadiumCtx != null) {
+            mReadiumCtx.dispose();
+        }
         ((ViewGroup) mWebView.getParent()).removeView(mWebView);
         mWebView.removeAllViews();
         mWebView.clearCache(true);
