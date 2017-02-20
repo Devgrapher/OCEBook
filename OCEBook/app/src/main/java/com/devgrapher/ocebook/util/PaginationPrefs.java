@@ -1,9 +1,12 @@
 package com.devgrapher.ocebook.util;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import org.readium.sdk.android.Container;
 
 /**
  * Created by Brent on 2/20/17.
@@ -15,6 +18,10 @@ public class PaginationPrefs {
     private static final String PREF_SPINE_PAGE = "pref_spine_page";
     private static final String PREF_SPINE_TOTAL_PAGE = "pref_spine_total_page";
     private final SharedPreferences mPrefs;
+
+    public PaginationPrefs() {
+        mPrefs = null;
+    }
 
     public PaginationPrefs(Context context) {
         mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -35,14 +42,20 @@ public class PaginationPrefs {
     }
 
     public int getSpineIndex() {
+        if (mPrefs == null)
+            return 0;
         return mPrefs.getInt(PREF_SPINE_INDEX, 0);
     }
 
     public int getSpinePage() {
+        if (mPrefs == null)
+            return 0;
         return mPrefs.getInt(PREF_SPINE_PAGE, 0);
     }
 
     public int getSpineTotalPage() {
+        if (mPrefs == null)
+            return 0;
         return mPrefs.getInt(PREF_SPINE_TOTAL_PAGE, 1);
     }
 

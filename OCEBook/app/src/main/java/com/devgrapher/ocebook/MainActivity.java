@@ -3,7 +3,6 @@ package com.devgrapher.ocebook;
 import android.Manifest;
 import android.app.FragmentManager;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -13,7 +12,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -26,24 +24,20 @@ import com.devgrapher.ocebook.util.PageCounts;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.EPub3;
-import org.readium.sdk.android.Package;
 import org.readium.sdk.android.SdkErrorHandler;
 import org.readium.sdk.android.components.navigation.NavigationPoint;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 
-public class ReaderActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         SdkErrorHandler,
         WebViewFragment.OnFragmentInteractionListener,
         HiddenRendererFragment.OnFragmentInteractionListener {
 
-    private final String TAG = ReaderActivity.class.toString();
+    private final String TAG = MainActivity.class.toString();
     private Container mContainer;
     private ReadiumContext mReadiumCtx;
     private PageCounts mPageCounts;
@@ -56,12 +50,12 @@ public class ReaderActivity extends AppCompatActivity
     private TextView mPageInfoTextView;
 
     // TODO: 외부에서 값을 받아와야 함
-    private final String BOOK_PATH = "/sdcard/ocebook/alice3.epub";
+    public static final String BOOK_PATH = "/sdcard/ocebook/alice3.epub";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_reader);
+        setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -90,7 +84,7 @@ public class ReaderActivity extends AppCompatActivity
             ObjectHolder.getInstance().putContainer(sContainerId, mContainer);
         }
 
-        Log.d(ReaderActivity.class.toString(), mContainer.getName());
+        Log.d(MainActivity.class.toString(), mContainer.getName());
 
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager.findFragmentById(R.id.container_web_fragment) == null) {

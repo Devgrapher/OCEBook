@@ -11,6 +11,7 @@ android {
         jackOptions {
             enabled true
         }
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
 
     compileOptions {
