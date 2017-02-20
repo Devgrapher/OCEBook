@@ -16,7 +16,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/tv_nav_book_title"
-        android:text="title"
         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
     <TextView
@@ -24,6 +23,6 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:text="Table of Contents" />
+        android:text="@string/navigation_header_toc" />
 
 </LinearLayout>
