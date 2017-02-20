@@ -33,6 +33,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 
 public class ReaderActivity extends AppCompatActivity
@@ -221,6 +222,7 @@ public class ReaderActivity extends AppCompatActivity
         int percent = (int) ((spineIndex + 1) / (float) totalSpine * 100);
         mPageInfoTextView.setText("" + percent + "%");
 
+
         // reset
         if (spineIndex == 0) {
             mPageCounts = new PageCounts(totalSpine);
@@ -229,7 +231,7 @@ public class ReaderActivity extends AppCompatActivity
         // Store page counts for each spine.
         mPageCounts.updatePage(spineIndex, pageCount);
 
-        // done
+        // if done
         if (percent == 100) {
             mPageCounts.updateComplete();
             onPageChanged(mCurrentSpinePage, mCurrentSpine);

@@ -23,6 +23,7 @@ import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ViewerSettings;
+import com.devgrapher.ocebook.util.MotionHandler;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.Package;
@@ -113,20 +114,17 @@ public class WebViewFragment extends Fragment {
         mWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
         mWebView.setWebViewClient(new ReadiumWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
+        mWebView.setOnTouchListener(new MotionHandler(new MotionHandler.OnMotionListener() {
+            @Override
+            public void onMoveNextPage() {
+                mReadiumCtx.getApi().openPageRight();
+            }
 
-        mWebView.setOnTouchListener((View v, MotionEvent event) -> {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_UP:
-                        if (event.getX() < v.getWidth() / 2) {
-                            Log.d(TAG, "Touch left");
-                            mReadiumCtx.getApi().openPageLeft();
-                        } else {
-                            Log.d(TAG, "Touch right");
-                            mReadiumCtx.getApi().openPageRight();
-                        }
-                }
-                return false;
-        });
+            @Override
+            public void onMovePreviousPage() {
+                mReadiumCtx.getApi().openPageLeft();
+            }
+        }));
     }
 
     private void initReadium() {

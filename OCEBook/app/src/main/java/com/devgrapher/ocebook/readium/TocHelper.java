@@ -7,8 +7,6 @@ import org.readium.sdk.android.components.navigation.NavigationPoint;
 import java.util.stream.Stream;
 
 /**
- * Created by Brent on 2/17/17.
- *
  * Help to navigate through the Table of Contents.
  * This flattens children tree and caches it.
  */
