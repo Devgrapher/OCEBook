@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +22,7 @@ import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ViewerSettings;
+import com.devgrapher.ocebook.util.PaginationPrefs;
 import com.devgrapher.ocebook.util.WebViewMotionHandler;
 
 import org.readium.sdk.android.Container;
@@ -46,6 +48,7 @@ public class WebViewFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
     private Container mContainer;
+    private PaginationPrefs mLastPageinfo;
     // protected to be accessed in HiddenRendererFragment
     protected ReadiumContext mReadiumCtx;
     protected ViewerSettings mViewerSettings;
@@ -98,7 +101,6 @@ public class WebViewFragment extends Fragment {
 
         return view;
     }
-
 
     private void initWebView() {
         if ((getContext().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE)
@@ -272,35 +274,51 @@ public class WebViewFragment extends Fragment {
             @Override
             public void onReaderInitialized() {
                 getActivity().runOnUiThread(() -> {
-                    final Package pkcg = mReadiumCtx.getPackage();
-                    pkcg.getSpineItems().stream()
-                            .findAny()
-                            .ifPresent(item -> {
-                                mReadiumCtx.getApi().openBook(pkcg, mViewerSettings,
-                                        OpenPageRequest.fromIdref(item.getIdRef()));
+                    final Package pckg = mReadiumCtx.getPackage();
 
-                                mListener.onPackageOpen(mReadiumCtx);
-                            });
+                    // Get last open page number.
+                    mLastPageinfo = new PaginationPrefs(getContext());
+                    SpineItem spine = pckg.getSpineItems().get(mLastPageinfo.getSpineIndex());
+
+                    mReadiumCtx.getApi().openBook(pckg, mViewerSettings,
+                            OpenPageRequest.fromIdref(spine.getIdRef()));
+
+                    mListener.onPackageOpen(mReadiumCtx);
                 });
             }
 
             @Override
             public void onPaginationChanged(PaginationInfo currentPagesInfo) {
                 Log.d(TAG, "onPaginationChanged: " + currentPagesInfo);
+
                 List<Page> openPages = currentPagesInfo.getOpenPages();
                 if (openPages.isEmpty())
                     return;
 
                 getActivity().runOnUiThread(() -> {
+                    final Package pckg = mReadiumCtx.getPackage();
                     final Page page = openPages.get(0);
-                    SpineItem spineItem = mReadiumCtx.getPackage().getSpineItem(page
-                            .getIdref());
-                    boolean isFixedLayout = spineItem
-                            .isFixedLayout(mReadiumCtx.getPackage());
-                    mWebView.getSettings().setBuiltInZoomControls(
-                            isFixedLayout);
-                    mWebView.getSettings()
-                            .setDisplayZoomControls(false);
+
+                    SpineItem spineItem = pckg.getSpineItem(page.getIdref());
+                    boolean isFixedLayout = spineItem.isFixedLayout(pckg);
+                    mWebView.getSettings().setBuiltInZoomControls(isFixedLayout);
+                    mWebView.getSettings().setDisplayZoomControls(false);
+
+                    if (mLastPageinfo != null) {
+                        int newPage = mLastPageinfo.recalculateSpinePage(
+                                page.getSpineItemPageCount());
+                        Log.d("PaginationPref", "" + newPage);
+
+                        mReadiumCtx.getApi().openSpineItemPage(spineItem.getIdRef(), newPage);
+
+                        // Set null not to reuse.
+                        mLastPageinfo = null;
+                    } else {
+                        PaginationPrefs.save(getContext(),
+                                page.getSpineItemIndex(),
+                                page.getSpineItemPageIndex(),
+                                page.getSpineItemPageCount());
+                    }
 
                     mListener.onPageChanged(page.getSpineItemPageIndex(), page.getSpineItemIndex());
                 });
