@@ -34,8 +34,12 @@ public class ReadimWebServer {
     private WebServer mWebServer = new WebServer(WebServer.HTTP_HOST, WebServer.HTTP_PORT, dataPreProcessor);
 
     public void start(Package pckg) {
+        if (mWebServer.getPackage() == pckg)
+            return;
+
         mWebServer.stop();
         mWebServer.startServer(pckg);
+        Log.d(TAG, "Start Server");
     }
 
     public void reset() {
