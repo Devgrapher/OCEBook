@@ -29,6 +29,20 @@
 
 package com.devgrapher.ocebook.server;
 
+import android.util.Log;
+
+import com.devgrapher.ocebook.util.ByteRangeInputStream;
+import com.koushikdutta.async.AsyncServer;
+import com.koushikdutta.async.http.server.AsyncHttpServer;
+import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
+import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
+import com.koushikdutta.async.http.server.HttpServerRequestCallback;
+
+import org.readium.sdk.android.ManifestItem;
+import org.readium.sdk.android.Package;
+import org.readium.sdk.android.PackageResource;
+import org.readium.sdk.android.util.ResourceInputStream;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -41,20 +55,6 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-
-import org.readium.sdk.android.ManifestItem;
-import org.readium.sdk.android.Package;
-import org.readium.sdk.android.PackageResource;
-import org.readium.sdk.android.util.ResourceInputStream;
-
-import android.util.Log;
-
-import com.devgrapher.ocebook.util.ByteRangeInputStream;
-import com.koushikdutta.async.AsyncServer;
-import com.koushikdutta.async.http.server.AsyncHttpServer;
-import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
-import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
-import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 
 /**
  * This small web server will serve media files such as audio and video.

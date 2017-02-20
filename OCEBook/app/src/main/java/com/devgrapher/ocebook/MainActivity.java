@@ -4,14 +4,14 @@ import android.Manifest;
 import android.app.FragmentManager;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.devgrapher.ocebook.readium.ObjectHolder;
 import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.readium.TocHelper;
+import com.devgrapher.ocebook.util.Laz;
 import com.devgrapher.ocebook.util.PageCounts;
 
 import org.readium.sdk.android.Container;
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity
             ObjectHolder.getInstance().putContainer(sContainerId, mContainer);
         }
 
-        Log.d(MainActivity.class.toString(), mContainer.getName());
+        Laz.y(()-> Log.d(MainActivity.class.toString(), mContainer.getName()));
 
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager.findFragmentById(R.id.container_web_fragment) == null) {

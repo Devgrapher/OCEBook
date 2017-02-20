@@ -1,11 +1,10 @@
 package com.devgrapher.ocebook;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,12 +15,13 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.devgrapher.ocebook.readium.ObjectHolder;
-import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ViewerSettings;
+import com.devgrapher.ocebook.readium.ObjectHolder;
+import com.devgrapher.ocebook.readium.ReadiumContext;
+import com.devgrapher.ocebook.util.Laz;
 import com.devgrapher.ocebook.util.PaginationPrefs;
 import com.devgrapher.ocebook.util.WebViewMotionHandler;
 
@@ -233,28 +233,28 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            Log.d(TAG, "onPageStarted: " + url);
+            Laz.y(()-> Log.d(TAG, "onPageStarted: " + url));
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            Log.d(TAG, "onPageFinished: " + url);
+            Laz.y(()-> Log.d(TAG, "onPageFinished: " + url));
         }
 
         @Override
         public void onLoadResource(WebView view, String url) {
-            Log.d(TAG, "onLoadResource: " + url);
+            Laz.y(()-> Log.d(TAG, "onLoadResource: " + url));
         }
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.d(TAG, "shouldOverrideUrlLoading: " + url);
+            Laz.y(()-> Log.d(TAG, "shouldOverrideUrlLoading: " + url));
             return false;
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
-            Log.d(TAG, "-------- interceptRequest: " + req.getUrl().toString());
+            Laz.y(()-> Log.d(TAG, "-------- interceptRequest: " + req.getUrl().toString()));
 
             WebResourceResponse res = mReadiumCtx.handleWebRequest(req.getUrl().toString());
 
@@ -289,7 +289,7 @@ public class WebViewFragment extends Fragment {
 
             @Override
             public void onPaginationChanged(PaginationInfo currentPagesInfo) {
-                Log.d(TAG, "onPaginationChanged: " + currentPagesInfo);
+                Laz.y(()-> Log.d(TAG, "onPaginationChanged: " + currentPagesInfo));
 
                 List<Page> openPages = currentPagesInfo.getOpenPages();
                 if (openPages.isEmpty())
@@ -307,7 +307,7 @@ public class WebViewFragment extends Fragment {
                     if (mLastPageinfo != null) {
                         int newPage = mLastPageinfo.recalculateSpinePage(
                                 page.getSpineItemPageCount());
-                        Log.d("PaginationPref", "" + newPage);
+                        Laz.y(()-> Log.d("PaginationPref", "" + newPage));
 
                         mReadiumCtx.getApi().openSpineItemPage(spineItem.getIdRef(), newPage);
 

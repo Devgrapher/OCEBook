@@ -1,7 +1,5 @@
 package com.devgrapher.ocebook.util;
 
-import com.devgrapher.ocebook.model.PaginationInfo;
-
 /**
  * Created by Brent on 2/19/17.
  */

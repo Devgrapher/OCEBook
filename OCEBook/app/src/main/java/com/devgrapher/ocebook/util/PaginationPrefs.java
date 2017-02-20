@@ -1,12 +1,9 @@
 package com.devgrapher.ocebook.util;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
-
-import org.readium.sdk.android.Container;
 
 /**
  * Created by Brent on 2/20/17.
@@ -25,10 +22,10 @@ public class PaginationPrefs {
 
     public PaginationPrefs(Context context) {
         mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        Log.d(TAG, String.format("%d, %d, %d",
+        Laz.y(()-> Log.d(TAG, String.format("%d, %d, %d",
                 getSpineIndex(),
                 getSpinePage(),
-                getSpineTotalPage()));
+                getSpineTotalPage())));
     }
 
     public static void save(Context context, int spineIndex, int spinePage, int spineTotalPage) {

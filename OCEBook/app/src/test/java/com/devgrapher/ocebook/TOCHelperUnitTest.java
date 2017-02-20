@@ -1,7 +1,5 @@
 package com.devgrapher.ocebook;
 
-import android.content.Context;
-
 import com.devgrapher.ocebook.readium.TocHelper;
 
 import org.junit.Ignore;
@@ -18,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**

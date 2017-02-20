@@ -1,7 +1,6 @@
 package com.devgrapher.ocebook.util;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,7 +39,7 @@ public class WebViewMotionHandler implements View.OnTouchListener {
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDoubleTap(MotionEvent e) {
-            Log.d(TAG, "Double Tap");
+            Laz.yLog(TAG, "Double Tap");
             // Only accept 1/3 potion in the middle.
             if (e.getX() > mView.getWidth() / 3 &&
                     e.getX() < mView.getWidth() * 2/3) {
@@ -56,10 +55,10 @@ public class WebViewMotionHandler implements View.OnTouchListener {
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             if (e.getX() < mView.getWidth() / 2) {
-                Log.d(TAG, "Touch left");
+                Laz.yLog(TAG, "Touch left");
                 mMotionListener.onMovePreviousPage();
             } else {
-                Log.d(TAG, "Touch right");
+                Laz.yLog(TAG, "Touch right");
                 mMotionListener.onMoveNextPage();
             }
             return true;
@@ -68,10 +67,10 @@ public class WebViewMotionHandler implements View.OnTouchListener {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             if (e1.getX() < mView.getWidth() / 2) {
-                Log.d(TAG, "Fling left");
+                Laz.yLog(TAG, "Fling left");
                 mMotionListener.onMovePreviousPage();
             } else {
-                Log.d(TAG, "Fling right");
+                Laz.yLog(TAG, "Fling right");
                 mMotionListener.onMoveNextPage();
             }
             return true;

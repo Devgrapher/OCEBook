@@ -1,30 +1,24 @@
 package com.devgrapher.ocebook;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.net.Uri;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
 import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
-import com.devgrapher.ocebook.readium.ObjectHolder;
 import com.devgrapher.ocebook.readium.ReadiumContext;
+import com.devgrapher.ocebook.util.Laz;
 
-import org.readium.sdk.android.Container;
 import org.readium.sdk.android.Package;
 import org.readium.sdk.android.SpineItem;
 
 import java.util.List;
-import java.util.Locale;
 
 
 /**
@@ -121,7 +115,7 @@ public class HiddenRendererFragment extends WebViewFragment {
 
             @Override
             public void onPaginationChanged(PaginationInfo currentPagesInfo) {
-                Log.d(TAG, "onPaginationChanged: " + currentPagesInfo);
+                Laz.y(()->Log.d(TAG, "onPaginationChanged: " + currentPagesInfo));
                 List<Page> openPages = currentPagesInfo.getOpenPages();
                 if (openPages.isEmpty())
                     return;

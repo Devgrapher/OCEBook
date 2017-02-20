@@ -5,6 +5,7 @@ import android.webkit.WebResourceResponse;
 
 import com.devgrapher.ocebook.server.WebServer;
 import com.devgrapher.ocebook.util.HTMLUtil;
+import com.devgrapher.ocebook.util.Laz;
 
 import org.readium.sdk.android.ManifestItem;
 import org.readium.sdk.android.Package;
@@ -46,12 +47,12 @@ public class ScriptProcessor {
         boolean isLocalHttp =  url.startsWith(localHttpUrlPrefix);
 
         if (url.startsWith("http") && !isLocalHttp) {
-            Log.d(TAG, "HTTP (NOT LOCAL): " + url);
+            Laz.y(()-> Log.d(TAG, "HTTP (NOT LOCAL): " + url));
             return null;
         }
 
         String cleanedUrl = cleanResourceUrl(url, false);
-        Log.d(TAG, url + " => " + cleanedUrl);
+        Laz.y(()-> Log.d(TAG, url + " => " + cleanedUrl));
 
         if (cleanedUrl
                 .matches("\\/?\\d*\\/readium_epubReadingSystem_inject.js")) {
@@ -71,7 +72,7 @@ public class ScriptProcessor {
         }
 
         if (cleanedUrl.matches("\\/?readium_MathJax.js")) {
-            Log.d(TAG, "MathJax.js inject ...");
+            Laz.yLog(TAG, "MathJax.js inject ...");
 
             InputStream is = mDelegate.openAsset(Constants.PAYLOAD_MATHJAX_ASSET);
             if (is == null) {
@@ -83,7 +84,7 @@ public class ScriptProcessor {
         }
 
         if (cleanedUrl.matches("\\/?readium_Annotations.css")) {
-            Log.d(TAG, "annotations.css inject ...");
+            Laz.yLog(TAG, "annotations.css inject ...");
 
             InputStream is = mDelegate.openAsset(Constants.PAYLOAD_ANNOTATIONS_CSS_ASSET);
             if (is == null) {
@@ -114,7 +115,7 @@ public class ScriptProcessor {
 
         if (url.startsWith("file:")) {
             if (item == null) {
-                Log.e(TAG, "NO MANIFEST ITEM ... " + url);
+                Laz.yLog(TAG, "NO MANIFEST ITEM ... " + url);
                 return null;
             }
 
@@ -138,7 +139,7 @@ public class ScriptProcessor {
                 Log.e(TAG, "FAIL: " + httpUrl + " -- " + ex.getMessage(), ex);
             }
         }
-        Log.d(TAG, "RESOURCE FETCH ... " + url);
+        Laz.yLog(TAG, "RESOURCE FETCH ... " + url);
         return null;
     }
 
