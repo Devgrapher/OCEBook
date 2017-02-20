@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
@@ -15,7 +14,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.TextView;
 
 import com.devgrapher.ocebook.readium.ObjectHolder;
 import com.devgrapher.ocebook.readium.ReadiumContext;
@@ -23,7 +21,7 @@ import com.devgrapher.ocebook.model.OpenPageRequest;
 import com.devgrapher.ocebook.model.Page;
 import com.devgrapher.ocebook.model.PaginationInfo;
 import com.devgrapher.ocebook.model.ViewerSettings;
-import com.devgrapher.ocebook.util.MotionHandler;
+import com.devgrapher.ocebook.util.WebViewMotionHandler;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.Package;
@@ -32,7 +30,6 @@ import org.readium.sdk.android.SpineItem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Locale;
 
 
 /**
@@ -114,17 +111,23 @@ public class WebViewFragment extends Fragment {
         mWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
         mWebView.setWebViewClient(new ReadiumWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
-        mWebView.setOnTouchListener(new MotionHandler(new MotionHandler.OnMotionListener() {
-            @Override
-            public void onMoveNextPage() {
-                mReadiumCtx.getApi().openPageRight();
-            }
+        mWebView.setOnTouchListener(
+                new WebViewMotionHandler(getContext(), new WebViewMotionHandler.OnMotionListener() {
+                    @Override
+                    public void onMoveNextPage() {
+                        mReadiumCtx.getApi().openPageRight();
+                    }
 
-            @Override
-            public void onMovePreviousPage() {
-                mReadiumCtx.getApi().openPageLeft();
-            }
-        }));
+                    @Override
+                    public void onMovePreviousPage() {
+                        mReadiumCtx.getApi().openPageLeft();
+                    }
+
+                    @Override
+                    public void onOpenMenu() {
+                        mListener.onOpenMenu();
+                    }
+                }));
     }
 
     private void initReadium() {
@@ -221,6 +224,7 @@ public class WebViewFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         void onPackageOpen(ReadiumContext readiumContext);
         void onPageChanged(int pageIndex, int spineIndex);
+        void onOpenMenu();
     }
 
     public final class ReadiumWebViewClient extends WebViewClient {

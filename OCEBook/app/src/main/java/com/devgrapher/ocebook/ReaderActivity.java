@@ -13,6 +13,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -215,6 +216,12 @@ public class ReaderActivity extends AppCompatActivity
                     mPageCounts.calculateCurrentPage(spineIndex, pageIndex) + 1,
                     mPageCounts.getTotalCount()));
         }
+    }
+
+    @Override
+    public void onOpenMenu() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.openDrawer(GravityCompat.START);
     }
 
     @Override
