@@ -26,6 +26,8 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textSize="14sp"
         android:textAlignment="center"
+        android:textColor="@color/textColorSecondary"
+        android:background="@color/colorBackground"
         android:fontFamily="sans-serif" />
 
 </LinearLayout>

@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">2016 글 모음</string>
+
+    <string name="navigation_drawer_open">탐색창 열기</string>
+    <string name="navigation_drawer_close">탐색창 닫기</string>
+
+    <string name="action_settings">설정</string>
+
+    <string name="navigation_header_toc">목차</string>
+
+    <string name="error_file_open">파일 열기 실패!</string>
+
+</resources>
