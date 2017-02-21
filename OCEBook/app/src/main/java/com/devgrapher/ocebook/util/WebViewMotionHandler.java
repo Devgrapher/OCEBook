@@ -37,14 +37,25 @@ public class WebViewMotionHandler implements View.OnTouchListener {
     }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        private static final int REGION_LEFT = 1;
+        private static final int REGION_MENU = 2;
+        private static final int REGION_RIGHT = 3;
+
+        private int checkRegion(float x) {
+           if (x < mView.getWidth() / 3) {
+               return REGION_LEFT;
+           } else if (x < mView.getWidth() * 2/3) {
+               return REGION_MENU;
+           } else
+               return REGION_RIGHT;
+        }
+
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             Laz.yLog(TAG, "Double Tap");
             // Only accept 1/3 potion in the middle.
-            if (e.getX() > mView.getWidth() / 3 &&
-                    e.getX() < mView.getWidth() * 2/3) {
-                mMotionListener.onOpenMenu();
-            } else {
+            if (checkRegion(e.getX()) != REGION_MENU) {
                 // deal it as if double move page.
                 onSingleTapConfirmed(e);
                 onSingleTapConfirmed(e);
@@ -54,24 +65,34 @@ public class WebViewMotionHandler implements View.OnTouchListener {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (e.getX() < mView.getWidth() / 2) {
-                Laz.yLog(TAG, "Touch left");
-                mMotionListener.onMovePreviousPage();
-            } else {
-                Laz.yLog(TAG, "Touch right");
-                mMotionListener.onMoveNextPage();
+            switch (checkRegion(e.getX())) {
+                case REGION_LEFT:
+                    Laz.yLog(TAG, "Touch left");
+                    mMotionListener.onMovePreviousPage();
+                    break;
+                case REGION_MENU:
+                    Laz.yLog(TAG, "Touch middle");
+                    mMotionListener.onOpenMenu();
+                    break;
+                case REGION_RIGHT:
+                    Laz.yLog(TAG, "Touch right");
+                    mMotionListener.onMoveNextPage();
+                    break;
             }
             return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            if (e1.getX() < mView.getWidth() / 2) {
-                Laz.yLog(TAG, "Fling left");
-                mMotionListener.onMovePreviousPage();
-            } else {
-                Laz.yLog(TAG, "Fling right");
-                mMotionListener.onMoveNextPage();
+            switch (checkRegion(e1.getX())) {
+                case REGION_LEFT:
+                    Laz.yLog(TAG, "Fling left");
+                    mMotionListener.onMovePreviousPage();
+                    break;
+                case REGION_RIGHT:
+                    Laz.yLog(TAG, "Fling right");
+                    mMotionListener.onMoveNextPage();
+                    break;
             }
             return true;
         }
