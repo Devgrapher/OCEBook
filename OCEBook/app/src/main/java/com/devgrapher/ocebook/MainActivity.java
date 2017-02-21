@@ -73,8 +73,6 @@ public class MainActivity extends AppCompatActivity
 
         mPageInfoTextView = (TextView) findViewById(R.id.tv_page_info);
 
-        if (!checkPermissions()) return;
-
         if (!PrepareBook()) return;
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -121,19 +119,6 @@ public class MainActivity extends AppCompatActivity
 
         Laz.y(()-> Log.d(MainActivity.class.toString(), mContainer.getName()));
 
-        return true;
-    }
-
-    private boolean checkPermissions() {
-        int permissionCheck = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE);
-
-        if (permissionCheck == PackageManager.PERMISSION_DENIED) {
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.error_permission),
-                    Toast.LENGTH_LONG).show();
-            return false;
-        }
         return true;
     }
 
