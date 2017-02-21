@@ -8,4 +8,7 @@
 
     <string name="navigation_header_toc">Table of contents</string>
 
+    <string name="error_file_open">Book Open Fail!</string>
+    <string name="error_permission">Permission Denied</string>
+
 </resources>

@@ -2,7 +2,7 @@ package com.devgrapher.ocebook.util;
 
 import android.util.Log;
 
-import com.devgrapher.ocebook.BuildConfig;
+import com.devgrapher.ocebook.App;
 
 /**
  * Logging class
@@ -13,7 +13,7 @@ public class Laz {
      * @param logging Logging code fragment that needs some processing to build up log string.
      */
     public static void y(Runnable logging) {
-        if (!BuildConfig.DEBUG)
+        if (!App.isDebugging())
             return;
         logging.run();
     }
@@ -24,7 +24,7 @@ public class Laz {
      * @param msg
      */
     public static void yLog(String tag, String msg) {
-        if (!BuildConfig.DEBUG)
+        if (!App.isDebugging())
             return;
         Log.d(tag, msg);
     }

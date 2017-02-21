@@ -22,12 +22,15 @@ import com.devgrapher.ocebook.readium.ReadiumContext;
 import com.devgrapher.ocebook.readium.TocHelper;
 import com.devgrapher.ocebook.util.Laz;
 import com.devgrapher.ocebook.util.PageCounts;
+import com.devgrapher.ocebook.util.TheBook;
 
 import org.readium.sdk.android.Container;
 import org.readium.sdk.android.EPub3;
 import org.readium.sdk.android.SdkErrorHandler;
 import org.readium.sdk.android.components.navigation.NavigationPoint;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,8 +53,7 @@ public class MainActivity extends AppCompatActivity
     private NavigationView mTocNavView;
     private TextView mPageInfoTextView;
 
-    // TODO: 외부에서 값을 받아와야 함
-    public static final String BOOK_PATH = "/sdcard/ocebook/alice3.epub";
+    public static final String ASSET_BOOK_PATH = "the_book.epub";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,21 +73,9 @@ public class MainActivity extends AppCompatActivity
 
         mPageInfoTextView = (TextView) findViewById(R.id.tv_page_info);
 
-        if (!checkPermissions())
-            return;
+        if (!checkPermissions()) return;
 
-        // Check if the book opened before.
-        mContainer = ObjectHolder.getInstance().getContainer(sContainerId);
-        if (mContainer == null) {
-            mContainer = EPub3.openBook(BOOK_PATH);
-            if (mContainer == null)
-                return;
-
-            sContainerId = mContainer.getNativePtr();
-            ObjectHolder.getInstance().putContainer(sContainerId, mContainer);
-        }
-
-        Laz.y(()-> Log.d(MainActivity.class.toString(), mContainer.getName()));
+        if (!PrepareBook()) return;
 
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager.findFragmentById(R.id.container_web_fragment) == null) {
@@ -99,11 +89,49 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private boolean PrepareBook() {
+        // Check if the book opened before.
+        mContainer = ObjectHolder.getInstance().getContainer(sContainerId);
+        if (mContainer == null) {
+            File cachePath = null;
+
+            try {
+                if (App.isDebugging()) {
+                    cachePath = TheBook.makeCacheForce(getApplicationContext(), ASSET_BOOK_PATH);
+                } else {
+                    cachePath = TheBook.makeCacheIfNecessary(
+                            getApplicationContext(), ASSET_BOOK_PATH);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.error_file_open),
+                        Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+            mContainer = EPub3.openBook(cachePath.toString());
+            if (mContainer == null)
+                return false;
+
+            sContainerId = mContainer.getNativePtr();
+            ObjectHolder.getInstance().putContainer(sContainerId, mContainer);
+        }
+
+        Laz.y(()-> Log.d(MainActivity.class.toString(), mContainer.getName()));
+
+        return true;
+    }
+
     private boolean checkPermissions() {
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE);
+
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
-            Toast.makeText(getApplicationContext(), "Permission Denied", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.error_permission),
+                    Toast.LENGTH_LONG).show();
             return false;
         }
         return true;
