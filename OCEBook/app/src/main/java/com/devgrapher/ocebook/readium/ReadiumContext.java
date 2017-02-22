@@ -54,16 +54,16 @@ public class ReadiumContext {
     }
 
     public interface PageEventListener {
-        default void onPaginationChanged(PaginationInfo currentPagesInfo) {}
-        default void onSettingsApplied() {}
-        default void onReaderInitialized() {}
-        default void onContentLoaded() {}
-        default void onPageLoaded() {}
-        default void onIsMediaOverlayAvailable(String available) {}
-        default void onMediaOverlayStatusChanged(String status) {}
-        default void onMediaOverlayTTSSpeak() {}
-        default void onMediaOverlayTTSStop() {}
-        default void getBookmarkData(final String bookmarkData) {}
+        void onPaginationChanged(PaginationInfo currentPagesInfo);
+        void onSettingsApplied();
+        void onReaderInitialized();
+        void onContentLoaded();
+        void onPageLoaded();
+        void onIsMediaOverlayAvailable(String available);
+        void onMediaOverlayStatusChanged(String status);
+        void onMediaOverlayTTSSpeak();
+        void onMediaOverlayTTSStop();
+        void getBookmarkData(final String bookmarkData);
     }
 
     public ReadiumContext(WebViewDelegate delegate,

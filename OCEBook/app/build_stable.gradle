@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId = "com.devgrapher.ocebook"
-        minSdkVersion 24
+        minSdkVersion 21
         targetSdkVersion 25
         jackOptions {
             enabled true

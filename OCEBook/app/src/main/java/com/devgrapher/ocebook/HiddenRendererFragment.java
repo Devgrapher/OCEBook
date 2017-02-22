@@ -1,7 +1,10 @@
 package com.devgrapher.ocebook;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -86,6 +89,20 @@ public class HiddenRendererFragment extends WebViewFragment {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            if (activity instanceof OnFragmentInteractionListener) {
+                mListener = (OnFragmentInteractionListener) activity;
+            } else {
+                throw new RuntimeException(activity.toString()
+                        + " must implement OnFragmentInteractionListener");
+            }
+        }
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();
@@ -103,15 +120,22 @@ public class HiddenRendererFragment extends WebViewFragment {
             @Override
             public void onReaderInitialized() {
                 getActivity().runOnUiThread(() -> {
-                    final Package pkcg = mReadiumCtx.getPackage();
-                    pkcg.getSpineItems().stream()
-                            .findAny()
-                            .ifPresent(item -> {
-                                mReadiumCtx.getApi().openBook(pkcg, mViewerSettings,
-                                        OpenPageRequest.fromIdref(item.getIdRef()));
-                            });
+                    final Package pckg = mReadiumCtx.getPackage();
+                    if (pckg.getSpineItems().size() > 0) {
+                        SpineItem item = pckg.getSpineItems().get(0);
+                        mReadiumCtx.getApi().openBook(pckg, mViewerSettings,
+                                OpenPageRequest.fromIdref(item.getIdRef()));
+                    }
                 });
             }
+
+            @Override public void onContentLoaded() {}
+            @Override public void onPageLoaded() {}
+            @Override public void onIsMediaOverlayAvailable(String available) {}
+            @Override public void onMediaOverlayStatusChanged(String status) {}
+            @Override public void onMediaOverlayTTSSpeak() {}
+            @Override public void onMediaOverlayTTSStop() {}
+            @Override public void getBookmarkData(String bookmarkData) {}
 
             @Override
             public void onPaginationChanged(PaginationInfo currentPagesInfo) {
@@ -141,6 +165,8 @@ public class HiddenRendererFragment extends WebViewFragment {
                     }
                 });
             }
+
+            @Override public void onSettingsApplied() {}
         };
     }
 }

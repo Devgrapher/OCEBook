@@ -1,9 +1,12 @@
 package com.devgrapher.ocebook;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -52,6 +55,7 @@ public class WebViewFragment extends Fragment {
     // protected to be accessed in HiddenRendererFragment
     protected ReadiumContext mReadiumCtx;
     protected ViewerSettings mViewerSettings;
+    protected Context mContext;
 
     private WebView mWebView;
 
@@ -103,8 +107,7 @@ public class WebViewFragment extends Fragment {
     }
 
     private void initWebView() {
-        if ((getContext().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE)
-                != 0) {
+        if (App.isDebugging()) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
@@ -114,7 +117,7 @@ public class WebViewFragment extends Fragment {
         mWebView.setWebViewClient(new ReadiumWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setOnTouchListener(
-                new WebViewMotionHandler(getContext(), new WebViewMotionHandler.OnMotionListener() {
+                new WebViewMotionHandler(mContext, new WebViewMotionHandler.OnMotionListener() {
                     @Override
                     public void onMoveNextPage() {
                         mReadiumCtx.getApi().openPageRight();
@@ -146,7 +149,7 @@ public class WebViewFragment extends Fragment {
                 @Override
                 public InputStream openAsset(String fileName) {
                     try {
-                        return getContext().getAssets().open(fileName);
+                        return mContext.getAssets().open(fileName);
                     } catch (IOException e) {
                         Log.e(TAG, "Asset Open Fail! : " + fileName);
                         return null;
@@ -171,11 +174,29 @@ public class WebViewFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        mContext = context;
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            mContext = activity.getApplicationContext();
+            if (activity instanceof OnFragmentInteractionListener) {
+                mListener = (OnFragmentInteractionListener) activity;
+            } else {
+                throw new RuntimeException(activity.toString()
+                        + " must implement OnFragmentInteractionListener");
+            }
+
         }
     }
 
@@ -277,7 +298,7 @@ public class WebViewFragment extends Fragment {
                     final Package pckg = mReadiumCtx.getPackage();
 
                     // Get last open page number.
-                    mLastPageinfo = new PaginationPrefs(getContext());
+                    mLastPageinfo = new PaginationPrefs(mContext);
                     SpineItem spine = pckg.getSpineItems().get(mLastPageinfo.getSpineIndex());
 
                     mReadiumCtx.getApi().openBook(pckg, mViewerSettings,
@@ -286,6 +307,14 @@ public class WebViewFragment extends Fragment {
                     mListener.onPackageOpen(mReadiumCtx);
                 });
             }
+
+            @Override public void onContentLoaded() {}
+            @Override public void onPageLoaded() {}
+            @Override public void onIsMediaOverlayAvailable(String available) {}
+            @Override public void onMediaOverlayStatusChanged(String status) {}
+            @Override public void onMediaOverlayTTSSpeak() {}
+            @Override public void onMediaOverlayTTSStop() {}
+            @Override public void getBookmarkData(String bookmarkData) {}
 
             @Override
             public void onPaginationChanged(PaginationInfo currentPagesInfo) {
@@ -314,7 +343,7 @@ public class WebViewFragment extends Fragment {
                         // Set null not to reuse.
                         mLastPageinfo = null;
                     } else {
-                        PaginationPrefs.save(getContext(),
+                        PaginationPrefs.save(mContext,
                                 page.getSpineItemIndex(),
                                 page.getSpineItemPageIndex(),
                                 page.getSpineItemPageCount());
@@ -322,6 +351,11 @@ public class WebViewFragment extends Fragment {
 
                     mListener.onPageChanged(page.getSpineItemPageIndex(), page.getSpineItemIndex());
                 });
+            }
+
+            @Override
+            public void onSettingsApplied() {
+
             }
         };
     }

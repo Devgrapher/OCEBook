@@ -31,6 +31,7 @@ import org.readium.sdk.android.components.navigation.NavigationPoint;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
+        drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         mTocNavView = (NavigationView) findViewById(R.id.nav_view);
@@ -201,14 +202,14 @@ public class MainActivity extends AppCompatActivity
         mTocNavView.getMenu().removeGroup(R.id.menu_group_toc);
 
         AtomicInteger index = new AtomicInteger(0);
-        TocHelper.flatTableOfContents(readiumContext.getPackage())
-                .forEach(e -> {
-                    mTocNavView.getMenu().add(
-                            R.id.menu_group_toc,
-                            index.getAndIncrement(),
-                            Menu.NONE,
-                            e.getTitle());
-        });
+        for (NavigationPoint p:
+                TocHelper.flatTableOfContents(readiumContext.getPackage())) {
+            mTocNavView.getMenu().add(
+                    R.id.menu_group_toc,
+                    index.getAndIncrement(),
+                    Menu.NONE,
+                    p.getTitle());
+        }
 
         ((TextView) mTocNavView.findViewById(R.id.tv_nav_book_title))
                 .setText(readiumContext.getPackage().getTitle());
