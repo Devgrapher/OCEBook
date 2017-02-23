@@ -169,7 +169,6 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -239,7 +238,6 @@ public class MainActivity extends AppCompatActivity
     public void onBrowsePageInProgress(int spineIndex, int totalSpine, int pageCount) {
         int percent = (int) ((spineIndex + 1) / (float) totalSpine * 100);
         mPageInfoTextView.setText("" + percent + "%");
-
 
         // reset
         if (spineIndex == 0) {

@@ -38,12 +38,11 @@ public class ReadimWebServer {
         if (mWebServer.getPackage() == pckg)
             return;
 
-        mWebServer.stop();
         mWebServer.startServer(pckg);
         Laz.yLog(TAG, "Start Server");
     }
 
-    public void reset() {
+    public void stop() {
         mWebServer.stop();
         Laz.yLog(TAG, "Stop Server");
     }

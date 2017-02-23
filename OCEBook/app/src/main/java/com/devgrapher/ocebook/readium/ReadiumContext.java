@@ -90,7 +90,7 @@ public class ReadiumContext {
     }
 
     public void dispose() {
-        sWebServer.reset();
+        sWebServer.stop();
     }
 
     public WebResourceResponse handleWebRequest(String url) {

@@ -219,17 +219,13 @@ public class WebViewFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        if (mReadiumCtx != null) {
-            ObjectHolder.getInstance().removeContext(mReadiumCtx.getId());
-            mReadiumCtx.dispose();
-        }
-        super.onDestroyView();
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
+
+        if (getActivity().isFinishing()) {
+            mReadiumCtx.dispose();
+        }
+        ObjectHolder.getInstance().removeContext(mReadiumCtx.getId());
 
         ((ViewGroup) mWebView.getParent()).removeView(mWebView);
         mWebView.removeAllViews();
@@ -278,8 +274,8 @@ public class WebViewFragment extends Fragment {
         }
 
         @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Laz.y(()-> Log.d(TAG, "shouldOverrideUrlLoading: " + url));
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
+            Laz.y(()-> Log.d(TAG, "shouldOverrideUrlLoading: " + req.getUrl()));
             return false;
         }
 
@@ -325,6 +321,7 @@ public class WebViewFragment extends Fragment {
             @Override public void onMediaOverlayTTSSpeak() {}
             @Override public void onMediaOverlayTTSStop() {}
             @Override public void getBookmarkData(String bookmarkData) {}
+            @Override public void onSettingsApplied() {}
 
             @Override
             public void onPaginationChanged(PaginationInfo currentPagesInfo) {
@@ -361,11 +358,6 @@ public class WebViewFragment extends Fragment {
 
                     mListener.onPageChanged(page.getSpineItemPageIndex(), page.getSpineItemIndex());
                 });
-            }
-
-            @Override
-            public void onSettingsApplied() {
-
             }
         };
     }
