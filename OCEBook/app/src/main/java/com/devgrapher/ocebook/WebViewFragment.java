@@ -219,19 +219,29 @@ public class WebViewFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        if (mReadiumCtx != null) {
+            ObjectHolder.getInstance().removeContext(mReadiumCtx.getId());
+            mReadiumCtx.dispose();
+        }
+        super.onDestroyView();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
 
-        if (mReadiumCtx != null) {
-            mReadiumCtx.dispose();
-        }
         ((ViewGroup) mWebView.getParent()).removeView(mWebView);
         mWebView.removeAllViews();
         mWebView.clearCache(true);
         mWebView.clearHistory();
         mWebView.destroy();
+    }
 
-        ObjectHolder.getInstance().removeContext(mReadiumCtx.getId());
+    public void runOnUiThread(Runnable action) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(action);
+        }
     }
 
     /**
@@ -294,7 +304,7 @@ public class WebViewFragment extends Fragment {
 
             @Override
             public void onReaderInitialized() {
-                getActivity().runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     final Package pckg = mReadiumCtx.getPackage();
 
                     // Get last open page number.
@@ -324,7 +334,7 @@ public class WebViewFragment extends Fragment {
                 if (openPages.isEmpty())
                     return;
 
-                getActivity().runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     final Package pckg = mReadiumCtx.getPackage();
                     final Page page = openPages.get(0);
 

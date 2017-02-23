@@ -45,5 +45,6 @@ public class ReadimWebServer {
 
     public void reset() {
         mWebServer.stop();
+        Laz.yLog(TAG, "Stop Server");
     }
 }

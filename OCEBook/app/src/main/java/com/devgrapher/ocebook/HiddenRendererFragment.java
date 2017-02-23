@@ -119,7 +119,7 @@ public class HiddenRendererFragment extends WebViewFragment {
 
             @Override
             public void onReaderInitialized() {
-                getActivity().runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     final Package pckg = mReadiumCtx.getPackage();
                     if (pckg.getSpineItems().size() > 0) {
                         SpineItem item = pckg.getSpineItems().get(0);
@@ -144,7 +144,7 @@ public class HiddenRendererFragment extends WebViewFragment {
                 if (openPages.isEmpty())
                     return;
 
-                getActivity().runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     final Page page = openPages.get(0);
 
                     int totalSpine = currentPagesInfo.getSpineItemCount();

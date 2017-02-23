@@ -90,7 +90,6 @@ public class ReadiumContext {
     }
 
     public void dispose() {
-        mWebViewDelegate.loadUrl(READER_SKELETON);
         sWebServer.reset();
     }
 

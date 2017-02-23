@@ -126,6 +126,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (isFinishing()) {
+            if (mContainer != null) {
+                ObjectHolder.getInstance().removeContainer(mContainer.getNativePtr());
+                EPub3.closeBook(mContainer);
+                sContainerId = 0;
+                mContainer = null;
+            }
+        }
     }
 
     @Override
@@ -135,13 +144,6 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
-
-        if (mContainer != null) {
-            ObjectHolder.getInstance().removeContainer(mContainer.getNativePtr());
-            EPub3.closeBook(mContainer);
-            sContainerId = 0;
-            mContainer = null;
         }
     }
 
