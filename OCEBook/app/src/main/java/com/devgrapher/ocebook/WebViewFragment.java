@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;

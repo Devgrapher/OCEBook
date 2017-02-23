@@ -1,11 +1,8 @@
 package com.devgrapher.ocebook;
 
-import android.Manifest;
 import android.app.FragmentManager;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -14,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,7 +29,6 @@ import org.readium.sdk.android.components.navigation.NavigationPoint;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,11 +60,28 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Init navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
+        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override public void onDrawerSlide(View drawerView, float slideOffset) {}
+            @Override public void onDrawerOpened(View drawerView) {
+                enableFullScreen(false);
+            }
+            @Override public void onDrawerClosed(View drawerView) {
+                enableFullScreen(true);
+            }
+            @Override public void onDrawerStateChanged(int newState) {}
+        });
         toggle.syncState();
+
+        // Set fulls screen layout
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        decorView.setSystemUiVisibility(uiOptions);
+        enableFullScreen(true);
 
         mTocNavView = (NavigationView) findViewById(R.id.nav_view);
         mTocNavView.setNavigationItemSelectedListener(this);
@@ -123,6 +137,27 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    public void enableFullScreen(boolean enable) {
+        View decorView = getWindow().getDecorView();
+        int uiOptions = decorView.getSystemUiVisibility();
+        if (enable) {
+            uiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        } else {
+            uiOptions &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
+        }
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+
+    public void openNavigataionDrawer(boolean open) {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (open) {
+            drawer.openDrawer(GravityCompat.START);
+        }
+        else {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -141,7 +176,7 @@ public class MainActivity extends AppCompatActivity
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+            openNavigataionDrawer(false);
         } else {
             super.onBackPressed();
         }
@@ -180,8 +215,7 @@ public class MainActivity extends AppCompatActivity
                     nav.getContent(),mReadiumCtx.getPackage().getTableOfContents().getSourceHref());
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        openNavigataionDrawer(false);
         return true;
     }
 
@@ -230,8 +264,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onOpenMenu() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.openDrawer(GravityCompat.START);
+        openNavigataionDrawer(true);
     }
 
     @Override
