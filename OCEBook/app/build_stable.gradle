@@ -8,8 +8,8 @@ android {
         applicationId = "com.devgrapher.ocebook"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 10101
-        versionName "1.1.1"
+        versionCode 10102
+        versionName "1.1.2"
         jackOptions {
             enabled true
         }
