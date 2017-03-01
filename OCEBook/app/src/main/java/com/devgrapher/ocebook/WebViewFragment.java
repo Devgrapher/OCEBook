@@ -56,7 +56,7 @@ public class WebViewFragment extends Fragment {
     protected ViewerSettings mViewerSettings;
     protected Context mContext;
 
-    private WebView mWebView;
+    private WebViewEx mWebView;
 
     public WebViewFragment() {
         // Required empty public constructor
@@ -93,7 +93,7 @@ public class WebViewFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_web_view, container, false);
-        mWebView = (WebView) view.findViewById(R.id.webView);
+        mWebView = (WebViewEx) view.findViewById(R.id.webView);
 
         initWebView();
         initReadium();
