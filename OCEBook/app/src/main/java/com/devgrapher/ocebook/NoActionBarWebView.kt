@@ -15,7 +15,7 @@ import android.webkit.WebView
     main reason.
     This class only hook the old method, api under 23, since from 23 it doesn't create action bar.
  */
-class WebViewEx : WebView {
+class NoActionBarWebView : WebView {
     constructor(context: Context) : super(context) {}
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}

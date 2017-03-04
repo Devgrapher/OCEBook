@@ -10,8 +10,11 @@ import android.view.View
  * This only provides motions that we desired through OnMotionListener.
  */
 
-class WebViewMotionHandler(context: Context, private val mMotionListener: WebViewMotionHandler.OnMotionListener) : View.OnTouchListener {
-    private val mGestureDetector: GestureDetector
+class WebViewMotionHandler(context: Context,
+                           private val mMotionListener: WebViewMotionHandler.OnMotionListener) :
+        View.OnTouchListener {
+
+    private val mGestureDetector = GestureDetector(context, GestureListener())
 
     private var mView: View? = null
 
@@ -19,10 +22,6 @@ class WebViewMotionHandler(context: Context, private val mMotionListener: WebVie
         fun onMoveNextPage()
         fun onMovePreviousPage()
         fun onOpenMenu()
-    }
-
-    init {
-        mGestureDetector = GestureDetector(context, GestureListener())
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -33,12 +32,15 @@ class WebViewMotionHandler(context: Context, private val mMotionListener: WebVie
     private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
 
         private fun checkRegion(x: Float): Int {
-            if (x < mView!!.width / 3) {
-                return REGION_LEFT
-            } else if (x < mView!!.width * 2 / 3) {
-                return REGION_MENU
-            } else
-                return REGION_RIGHT
+            mView?.let { view ->
+                when {
+                    x < view.width / 3 -> return REGION_LEFT
+                    x < view.width * 2 / 3 -> return REGION_MENU
+                    else -> return REGION_RIGHT
+                }
+            }
+
+            return REGION_NONE
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
@@ -84,6 +86,7 @@ class WebViewMotionHandler(context: Context, private val mMotionListener: WebVie
             return true
         }
 
+        private val REGION_NONE = 0
         private val REGION_LEFT = 1
         private val REGION_MENU = 2
         private val REGION_RIGHT = 3

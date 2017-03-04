@@ -13,6 +13,7 @@ import org.readium.sdk.android.Package
  */
 
 class ReadimWebServer {
+    private val TAG = ReadimWebServer::class.java.toString()
     private val mScriptInjector = ScriptProcessor.ScriptInjector()
 
     private val dataPreProcessor = object: WebServer.DataPreProcessor {
@@ -38,9 +39,5 @@ class ReadimWebServer {
     fun stop() {
         mWebServer.stop()
         Laz.yLog(TAG, "Stop Server")
-    }
-
-    companion object {
-        private val TAG = ReadimWebServer::class.java.toString()
     }
 }

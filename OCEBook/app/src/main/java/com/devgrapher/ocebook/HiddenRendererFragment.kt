@@ -31,7 +31,7 @@ import org.readium.sdk.android.SpineItem
  * create an instance of this fragment.
  */
 class HiddenRendererFragment : WebViewFragment() {
-
+    private val TAG = WebViewFragment::class.java.toString()
     private var mListener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +42,7 @@ class HiddenRendererFragment : WebViewFragment() {
                               savedInstanceState: Bundle?): View? {
         val view = super.onCreateView(inflater, container, savedInstanceState)
 
-        val webView = view!!.findViewById(R.id.webView) as WebView
+        val webView = view?.findViewById(R.id.webView) as WebView
         webView.visibility = View.INVISIBLE
 
         return view
@@ -83,23 +83,14 @@ class HiddenRendererFragment : WebViewFragment() {
 
             override fun onReaderInitialized() {
                 runOnUiThread(Runnable {
-                    mReadiumCtx.pckg.spineItems!!
-                            .get(0)
-                            .run {
+                    mReadiumCtx.pckg.spineItems[0]
+                            .let { item ->
                                 mReadiumCtx.api.openBook(mReadiumCtx.pckg,
                                         mViewerSettings,
-                                        OpenPageRequest.fromIdref(this.idRef))
-                            }
+                                        OpenPageRequest.fromIdref(item.href))
+                    }
                 })
             }
-
-            override fun onContentLoaded() {}
-            override fun onPageLoaded() {}
-            override fun onIsMediaOverlayAvailable(available: String) {}
-            override fun onMediaOverlayStatusChanged(status: String) {}
-            override fun onMediaOverlayTTSSpeak() {}
-            override fun onMediaOverlayTTSStop() {}
-            override fun getBookmarkData(bookmarkData: String) {}
 
             override fun onPaginationChanged(currentPagesInfo: PaginationInfo) {
                 Laz.y { Log.d(TAG, "onPaginationChanged: " + currentPagesInfo) }
@@ -115,28 +106,25 @@ class HiddenRendererFragment : WebViewFragment() {
                     val nextSpine = spineIdx + 1
 
                     // notify the page count in current spine.
-                    mListener!!.onBrowsePageInProgress(
+                    mListener?.onBrowsePageInProgress(
                             spineIdx, totalSpine, page.spineItemPageCount)
 
                     if (nextSpine < totalSpine) {
                         // open next spine
                         Log.i(TAG, "Browse spines$nextSpine/$totalSpine")
 
-                        val spine = mReadiumCtx.pckg.spineItems!![nextSpine]
-                        mReadiumCtx.api.openBook(mReadiumCtx.pckg, mViewerSettings,
-                                OpenPageRequest.fromIdref(spine.idRef))
+                        mReadiumCtx.pckg.spineItems[nextSpine]
+                                .let { item ->
+                                    mReadiumCtx.api.openBook(mReadiumCtx.pckg, mViewerSettings,
+                                            OpenPageRequest.fromIdref(item.idRef))
+                                }
                     }
                 })
             }
-
-            override fun onSettingsApplied() {}
         }
     }
 
     companion object {
-        // TODO: Rename parameter arguments, choose names that match
-        // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private val TAG = WebViewFragment::class.java.toString()
         private val ARG_CONTAINER_ID = "container"
 
         /**
@@ -147,7 +135,6 @@ class HiddenRendererFragment : WebViewFragment() {
          * *
          * @return A new instance of fragment HiddenRendererFragment.
          */
-        // TODO: Rename and change types and number of parameters
         fun newInstance(containerId: Long): HiddenRendererFragment {
             val fragment = HiddenRendererFragment()
 

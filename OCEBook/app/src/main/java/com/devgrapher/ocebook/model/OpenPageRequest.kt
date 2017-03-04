@@ -26,8 +26,12 @@ package com.devgrapher.ocebook.model
 import org.json.JSONException
 import org.json.JSONObject
 
-class OpenPageRequest private constructor(private val idref: String?, private val spineItemPageIndex: Int?,
-                                          private val elementCfi: String?, private val contentRefUrl: String?, private val sourceFileHref: String?, private val elementId: String?) {
+class OpenPageRequest private constructor(private val idref: String?,
+                                          private val spineItemPageIndex: Int?,
+                                          private val elementCfi: String?,
+                                          private val contentRefUrl: String?,
+                                          private val sourceFileHref: String?,
+                                          private val elementId: String?) {
 
     @Throws(JSONException::class)
     fun toJSON(): JSONObject {

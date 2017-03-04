@@ -192,8 +192,7 @@ class WebServer(internal var mHostName:String,
         response.getHeaders().add("Last-Modified", this.mHTTPDateFormat.format(now.getTime()))
         response.getHeaders().add("Expires", this.mHTTPDateFormat.format(expires.getTime()))
 
-        if (isHTML)
-        {
+        if (isHTML) {
          //Pre-process HTML data as a whole
             var data:ByteArray = packageResource.readDataFull()
 
@@ -208,20 +207,18 @@ class WebServer(internal var mHostName:String,
         } else {
             val isRange = request.getHeaders().get("range") != null
 
-            var `is`:ResourceInputStream? = null
+            var input:ResourceInputStream? = null
             synchronized (criticalSectionSynchronizedLock) {
                 Log.d(TAG, "NEW STREAM:" + request.getPath())
-                `is` = packageResource.getInputStream(isRange) as ResourceInputStream?
+                input = packageResource.getInputStream(isRange) as ResourceInputStream?
 
                 val updatedContentLength = packageResource.contentLength
-                if (updatedContentLength != contentLength)
-                {
-                    Log.e(TAG, "UPDATED CONTENT LENGTH! " + updatedContentLength +
-                            "<--" + contentLength)
+                if (updatedContentLength != contentLength) {
+                    Log.e(TAG, "UPDATED CONTENT LENGTH! $updatedContentLength <-- $contentLength")
                 }
             }
 
-            val bis = ByteRangeInputStream(`is`!!, isRange, criticalSectionSynchronizedLock)
+            val bis = ByteRangeInputStream(input!!, isRange, criticalSectionSynchronizedLock)
 
             try
             {
@@ -279,7 +276,7 @@ class WebServer(internal var mHostName:String,
         val httpPrefix:String
 
         get() {
-            return "http://" + HTTP_HOST + ":" + HTTP_PORT
+            return "http://$HTTP_HOST:$HTTP_PORT"
         }
     }
 }

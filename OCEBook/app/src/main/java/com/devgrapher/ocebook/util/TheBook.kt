@@ -9,25 +9,26 @@ import java.io.InputStream
 
 object TheBook {
 
+    val DEFAULT_BOOK_ASSET_PATH = "the_book.epub"
     private val CACHE_PATH = "theBook.epub"
 
     @Throws(IOException::class)
     private fun makeCache(context: Context, assetPath: String, cachePath: File): File {
 
-        var `is`: InputStream? = null
+        var input: InputStream? = null
         var fos: FileOutputStream? = null
 
         try {
-            `is` = context.assets.open(assetPath)
-            val size = `is`!!.available()
+            input = context.assets.open(assetPath)
+            val size = input!!.available()
             val buffer = ByteArray(size)
-            `is`.read(buffer)
+            input.read(buffer)
 
             fos = FileOutputStream(cachePath)
             fos.write(buffer)
         } finally {
-            if (`is` != null)
-                `is`.close()
+            if (input != null)
+                input.close()
             if (fos != null)
                 fos.close()
         }

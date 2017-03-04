@@ -3,9 +3,6 @@ package com.devgrapher.ocebook.readium
 import org.readium.sdk.android.Package
 import org.readium.sdk.android.components.navigation.NavigationElement
 import org.readium.sdk.android.components.navigation.NavigationPoint
-import org.readium.sdk.android.components.navigation.NavigationTable
-
-import java.util.ArrayList
 
 /**
  * Help to navigate through the Table of Contents.
@@ -20,21 +17,15 @@ object TocHelper {
         return toc[idx]
     }
 
-    fun flatTableOfContents(pckg: Package): ArrayList<NavigationPoint> {
-        val flatten = ArrayList<NavigationPoint>()
-
-        flatNavigationElement(pckg.tableOfContents, flatten)
-        return flatten
+    fun flatTableOfContents(pckg: Package): List<NavigationPoint> {
+        return flatNavigationElement(pckg.tableOfContents)
+                .filter{ e -> e is NavigationPoint }
+                .map { e -> e as NavigationPoint }
     }
 
-    private fun flatNavigationElement(table: NavigationElement,
-                                      flatten: ArrayList<NavigationPoint>) {
-        for (e in table.getChildren()) {
-            if (e is NavigationTable)
-                flatNavigationElement(e, flatten)
-            else if (e is NavigationPoint)
-                flatten.add(e)
-        }
+    fun flatNavigationElement(elem: NavigationElement): List<NavigationElement> {
+        return listOf<NavigationElement>(elem)
+                .plus(elem.children.flatMap { e -> flatNavigationElement(e) })
     }
     /* target sdk 24 or higher
     public static NavigationPoint getAt(Package pckg, int idx) {

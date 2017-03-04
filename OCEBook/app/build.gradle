@@ -51,6 +51,7 @@ buildAssets.dependsOn "buildCssAssets",
 
 apply from: 'build_epubReadingSystem.gradle'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 tasks.whenTaskAdded { task ->
     def taskName = task.name

@@ -1,18 +1,15 @@
 package com.devgrapher.ocebook
 
-import android.app.FragmentManager
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 
 import com.devgrapher.ocebook.readium.ObjectHolder
@@ -25,13 +22,16 @@ import com.devgrapher.ocebook.util.TheBook
 import org.readium.sdk.android.Container
 import org.readium.sdk.android.EPub3
 import org.readium.sdk.android.SdkErrorHandler
-import org.readium.sdk.android.components.navigation.NavigationElement
 import org.readium.sdk.android.components.navigation.NavigationPoint
 
 import java.io.File
 import java.io.IOException
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
+
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.nav_header_main.*
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, SdkErrorHandler, WebViewFragment.OnFragmentInteractionListener, HiddenRendererFragment.OnFragmentInteractionListener {
@@ -43,30 +43,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var mCurrentSpinePage: Int = 0
     private var mCurrentSpine: Int = 0
 
-    private var mTocNavView: NavigationView? = null
-    private var mPageInfoTextView: TextView? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
         // Init navigation drawer
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
         val toggle = ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawer.addDrawerListener(toggle)
-        drawer.addDrawerListener(object : DrawerLayout.DrawerListener {
+                this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer_layout.addDrawerListener(toggle)
+        drawer_layout.addDrawerListener(object : DrawerLayout.DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
             override fun onDrawerOpened(drawerView: View) {
                 enableFullScreen(false)
             }
-
             override fun onDrawerClosed(drawerView: View) {
                 enableFullScreen(true)
             }
-
             override fun onDrawerStateChanged(newState: Int) {}
         })
         toggle.syncState()
@@ -77,10 +70,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         decorView.systemUiVisibility = uiOptions
         enableFullScreen(true)
 
-        mTocNavView = findViewById(R.id.nav_view) as NavigationView
-        mTocNavView!!.setNavigationItemSelectedListener(this)
-
-        mPageInfoTextView = findViewById(R.id.tv_page_info) as TextView
+        nav_view.setNavigationItemSelectedListener(this)
 
         if (!PrepareBook()) return
 
@@ -104,10 +94,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             try {
                 if (App.isDebugging) {
-                    cachePath = TheBook.makeCacheForce(applicationContext, ASSET_BOOK_PATH)
+                    cachePath = TheBook.makeCacheForce(applicationContext,
+                            TheBook.DEFAULT_BOOK_ASSET_PATH)
                 } else {
-                    cachePath = TheBook.makeCacheIfNecessary(
-                            applicationContext, ASSET_BOOK_PATH)
+                    cachePath = TheBook.makeCacheIfNecessary(applicationContext,
+                            TheBook.DEFAULT_BOOK_ASSET_PATH)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -125,23 +116,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
 
-        Laz.y { Log.d(MainActivity::class.java.toString(), mContainer!!.name) }
+        Laz.yLog(TAG, mContainer?.name ?: "no container")
 
         return true
     }
 
     fun enableFullScreen(enable: Boolean) {
         val decorView = window.decorView
-        var uiOptions = decorView.systemUiVisibility
+        val uiOptions : Int
         if (enable) {
-            uiOptions = uiOptions or View.SYSTEM_UI_FLAG_FULLSCREEN
+            uiOptions = decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_FULLSCREEN
         } else {
-            uiOptions = uiOptions and View.SYSTEM_UI_FLAG_FULLSCREEN.inv()
+            uiOptions = decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_FULLSCREEN.inv()
         }
         decorView.systemUiVisibility = uiOptions
     }
 
-    fun openNavigataionDrawer(open: Boolean) {
+    fun openNavigationDrawer(open: Boolean) {
         val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
         if (open) {
             drawer.openDrawer(GravityCompat.START)
@@ -164,9 +155,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onBackPressed() {
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            openNavigataionDrawer(false)
+        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+            openNavigationDrawer(false)
         } else {
             super.onBackPressed()
         }
@@ -184,7 +174,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // as you specify a parent activity in AndroidManifest.xml.
         val id = item.itemId
 
-
         if (id == R.id.action_settings) {
             return true
         }
@@ -194,17 +183,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
-        val id = item.itemId
-
         mReadiumCtx?.let { readiumCtx ->
-            TocHelper.getAt(readiumCtx.pckg, id).let { nav: NavigationPoint? ->
-                readiumCtx.api.openContentUrl(
-                        nav!!.content!!,
-                        readiumCtx.pckg.tableOfContents.sourceHref)
+            TocHelper.getAt(readiumCtx.pckg, item.itemId)?.let {
+                nav: NavigationPoint ->
+                        readiumCtx.api.openContentUrl(
+                                nav.content,
+                                readiumCtx.pckg.tableOfContents.sourceHref)
             }
         }
 
-        openNavigataionDrawer(false)
+        openNavigationDrawer(false)
         return true
     }
 
@@ -219,38 +207,40 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onPackageOpen(readiumContext: ReadiumContext) {
         mReadiumCtx = readiumContext
 
-        mTocNavView!!.menu.removeGroup(R.id.menu_group_toc)
+        nav_view.menu.removeGroup(R.id.menu_group_toc)
 
         val index = AtomicInteger(0)
         for (p in TocHelper.flatTableOfContents(readiumContext.pckg)) {
-            mTocNavView!!.menu.add(
+            nav_view.menu.add(
                     R.id.menu_group_toc,
                     index.getAndIncrement(),
                     Menu.NONE,
                     p.title)
         }
 
-        (mTocNavView!!.findViewById(R.id.tv_nav_book_title) as TextView).text = readiumContext.pckg.title
+        tv_nav_book_title.text = readiumContext.pckg.title
     }
 
     override fun onPageChanged(pageIndex: Int, spineIndex: Int) {
         mCurrentSpine = spineIndex
         mCurrentSpinePage = pageIndex
 
-        if (mPageCounts != null && !mPageCounts!!.isUpdating) {
-            mPageInfoTextView!!.setText(String.format(Locale.getDefault(), "%d / %d",
-                    mPageCounts!!.calculateCurrentPage(spineIndex, pageIndex) + 1,
-                    mPageCounts!!.totalCount))
+        mPageCounts?.let {
+            if (!it.isUpdating) {
+                tv_page_info.text = "%d / %d".format(
+                        it.calculateCurrentPage(spineIndex, pageIndex) + 1,
+                        it.totalCount)
+            }
         }
     }
 
     override fun onOpenMenu() {
-        openNavigataionDrawer(true)
+        openNavigationDrawer(true)
     }
 
     override fun onBrowsePageInProgress(spineIndex: Int, totalSpine: Int, pageCount: Int) {
         val percent = ((spineIndex + 1) / totalSpine.toFloat() * 100).toInt()
-        mPageInfoTextView!!.text = "%d %%".format(percent)
+        tv_page_info.text = "%d %%".format(percent)
 
         // reset
         if (spineIndex == 0) {
@@ -258,19 +248,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         // Store page counts for each spine.
-        mPageCounts!!.updatePage(spineIndex, pageCount)
+        mPageCounts?.run {
+            updatePage(spineIndex, pageCount)
+        }
 
         // if done
         if (percent == 100) {
-            mPageCounts!!.updateComplete()
-            onPageChanged(mCurrentSpinePage, mCurrentSpine)
+            mPageCounts?.let {
+                it.updateComplete()
+                onPageChanged(mCurrentSpinePage, mCurrentSpine)
+            }
         }
     }
 
     companion object {
-
         private var sContainerId: Long = 0
-
-        val ASSET_BOOK_PATH = "the_book.epub"
     }
 }

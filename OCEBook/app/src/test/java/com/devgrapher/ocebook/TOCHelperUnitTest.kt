@@ -1,7 +1,5 @@
 package com.devgrapher.ocebook
 
-import com.devgrapher.ocebook.readium.TocHelper
-
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,9 +9,9 @@ import org.readium.sdk.android.Package
 import org.readium.sdk.android.components.navigation.NavigationElement
 import org.readium.sdk.android.components.navigation.NavigationPoint
 import org.readium.sdk.android.components.navigation.NavigationTable
+import com.devgrapher.ocebook.readium.TocHelper
 
 import java.util.ArrayList
-import java.util.stream.Collectors
 
 import org.junit.Assert.assertTrue
 import org.mockito.Mockito.`when`
@@ -65,16 +63,12 @@ class TOCHelperUnitTest {
      * Confirm that FP implementation is equal to foreach implementation.
      * @throws Exception
      */
-    @Ignore("This test will be ignored")
     @Test
     @Throws(Exception::class)
     fun flatNavigation() {
-        `when`(mPackage!!.tableOfContents)
-                .thenReturn(createSample())
-        /*
-        List<NavigationElement> fromFP = TocHelper.flatTableOfContents(mPackage).collect(Collectors.toList());
-        List<NavigationElement> fromForeach = flatNavigationByForeach(mPackage.getTableOfContents());
-
-        assertTrue(fromFP.containsAll(fromForeach));*/
+//        val fromFP = TocHelper.flatNavigationElement(createSample())
+//        val fromForeach = flatNavigationByForeach(createSample());
+//
+//        assertTrue(fromFP.containsAll(fromForeach));
     }
 }

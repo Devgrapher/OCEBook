@@ -5,7 +5,7 @@
     android:orientation="vertical"
     tools:context="com.devgrapher.ocebook.WebViewFragment">
 
-    <com.devgrapher.ocebook.WebViewEx
+    <com.devgrapher.ocebook.NoActionBarWebView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="2"

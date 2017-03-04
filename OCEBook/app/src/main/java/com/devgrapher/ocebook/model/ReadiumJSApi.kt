@@ -7,6 +7,7 @@ import org.json.JSONObject
 import org.readium.sdk.android.Package
 
 class ReadiumJSApi(private val mJSLoader: ReadiumJSApi.JSLoader) {
+    private val TAG = "ReadiumJSApi"
 
     interface JSLoader {
         fun loadJS(javascript: String)
@@ -79,10 +80,5 @@ class ReadiumJSApi(private val mJSLoader: ReadiumJSApi.JSLoader) {
     private fun loadJS(jScript: String) {
         //Log.i(TAG, "loadJS: "+jScript);
         mJSLoader.loadJS("javascript:(function(){$jScript})()")
-    }
-
-    companion object {
-
-        private val TAG = "ReadiumJSApi"
     }
 }

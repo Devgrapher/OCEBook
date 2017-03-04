@@ -24,10 +24,12 @@ class ReadiumContext(private val mWebViewDelegate: ReadiumContext.WebViewDelegat
                      private val mEventListener: ReadiumContext.PageEventListener,
                      private val mContainer: Container) {
 
+    private val TAG = ReadiumContext::class.java.toString()
+    private val READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html"
     private val mScriptProcessor: ScriptProcessor
-    val pckg: Package
-    val api: ReadiumJSApi
 
+    val pckg: Package = mContainer.defaultPackage
+    val api: ReadiumJSApi
     val id: Long
         get() = System.identityHashCode(this).toLong()
 
@@ -39,21 +41,19 @@ class ReadiumContext(private val mWebViewDelegate: ReadiumContext.WebViewDelegat
     }
 
     interface PageEventListener {
-        fun onPaginationChanged(currentPagesInfo: PaginationInfo)
-        fun onSettingsApplied()
-        fun onReaderInitialized()
-        fun onContentLoaded()
-        fun onPageLoaded()
-        fun onIsMediaOverlayAvailable(available: String)
-        fun onMediaOverlayStatusChanged(status: String)
-        fun onMediaOverlayTTSSpeak()
-        fun onMediaOverlayTTSStop()
-        fun getBookmarkData(bookmarkData: String)
+        fun onPaginationChanged(currentPagesInfo: PaginationInfo) {}
+        fun onSettingsApplied() {}
+        fun onReaderInitialized() {}
+        fun onContentLoaded() {}
+        fun onPageLoaded() {}
+        fun onIsMediaOverlayAvailable(available: String) {}
+        fun onMediaOverlayStatusChanged(status: String) {}
+        fun onMediaOverlayTTSSpeak() {}
+        fun onMediaOverlayTTSStop() {}
+        fun getBookmarkData(bookmarkData: String) {}
     }
 
     init {
-        pckg = mContainer.defaultPackage!!
-
         mScriptProcessor = ScriptProcessor(mWebViewDelegate, pckg)
 
         api = ReadiumJSApi(object: ReadiumJSApi.JSLoader {
@@ -135,9 +135,6 @@ class ReadiumContext(private val mWebViewDelegate: ReadiumContext.WebViewDelegat
     }
 
     companion object {
-        private val TAG = ReadiumContext::class.java.toString()
-        private val READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html"
-
         private val sWebServer = ReadimWebServer()
     }
 }

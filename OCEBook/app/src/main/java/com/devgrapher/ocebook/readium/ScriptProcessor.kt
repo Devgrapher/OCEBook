@@ -6,23 +6,21 @@ import android.webkit.WebResourceResponse
 import com.devgrapher.ocebook.server.WebServer
 import com.devgrapher.ocebook.util.HTMLUtil
 import com.devgrapher.ocebook.util.Laz
+import com.koushikdutta.async.util.Charsets.UTF_8
 
-import org.readium.sdk.android.ManifestItem
 import org.readium.sdk.android.Package
 
 import java.io.ByteArrayInputStream
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLConnection
-import java.nio.charset.Charset
 
 /**
    * Created by Brent on 2/17/17.
   */
 
 class ScriptProcessor(private val mDelegate:ReadiumContext.WebViewDelegate, private val mPackage:Package) {
-    private val mEpubRsoInjectCounter: Int = 0
+    private val TAG = ScriptProcessor::class.java.toString()
+    private val UTF_8 = "utf-8"
 
     fun interceptRequest(url:String?):WebResourceResponse? {
          if (url == null || url == "undefined") {
@@ -52,7 +50,7 @@ class ScriptProcessor(private val mDelegate:ReadiumContext.WebViewDelegate, priv
             // global window.navigator.epubReadingSystem into the
             // iframe(s)
 
-            mDelegate.evaluateJavascript(Constants.INJECT_EPUB_RSO_SCRIPT_2)
+            mDelegate.evaluateJavascript(Injections.INJECT_EPUB_RSO_SCRIPT_2)
 
             return WebResourceResponse("text/javascript", UTF_8,
                     ByteArrayInputStream("(function(){})()".toByteArray()))
@@ -62,26 +60,26 @@ class ScriptProcessor(private val mDelegate:ReadiumContext.WebViewDelegate, priv
         {
             Laz.yLog(TAG, "MathJax.js inject ...")
 
-            val `is` = mDelegate.openAsset(Constants.PAYLOAD_MATHJAX_ASSET)
-            if (`is` == null)
+            val input = mDelegate.openAsset(Injections.PAYLOAD_MATHJAX_ASSET)
+            if (input == null)
             {
                 return WebResourceResponse(null, UTF_8, ByteArrayInputStream("".toByteArray()))
             }
 
-            return WebResourceResponse("text/javascript", UTF_8, `is`)
+            return WebResourceResponse("text/javascript", UTF_8, input)
         }
 
         if (cleanedUrl.matches(("\\/?readium_Annotations.css").toRegex()))
         {
             Laz.yLog(TAG, "annotations.css inject ...")
 
-            val `is` = mDelegate.openAsset(Constants.PAYLOAD_ANNOTATIONS_CSS_ASSET)
-            if (`is` == null)
+            val input = mDelegate.openAsset(Injections.PAYLOAD_ANNOTATIONS_CSS_ASSET)
+            if (input == null)
             {
                 return WebResourceResponse(null, UTF_8, ByteArrayInputStream("".toByteArray()))
             }
 
-            return WebResourceResponse("text/css", UTF_8, `is`)
+            return WebResourceResponse("text/css", UTF_8, input)
         }
 
         var mime:String? = null
@@ -126,8 +124,8 @@ class ScriptProcessor(private val mDelegate:ReadiumContext.WebViewDelegate, priv
                 {
                     (c as HttpURLConnection).setRequestProperty("Accept-Ranges", "none")
                 }
-                val `is` = c.getInputStream()
-                return WebResourceResponse(mime, null, `is`)
+                val input = c.getInputStream()
+                return WebResourceResponse(mime, null, input)
             }
             catch (ex:Exception) {
                     Log.e(TAG, "FAIL: " + httpUrl + " -- " + ex.message, ex)
@@ -149,8 +147,8 @@ class ScriptProcessor(private val mDelegate:ReadiumContext.WebViewDelegate, priv
         }
         else
         {
-            cleanUrl = if ((url.startsWith(Constants.ASSET_PREFIX)))
-                url.replaceFirst((Constants.ASSET_PREFIX).toRegex(), "")
+            cleanUrl = if ((url.startsWith(Injections.ASSET_PREFIX)))
+                url.replaceFirst((Injections.ASSET_PREFIX).toRegex(), "")
                 else url.replaceFirst(("file://").toRegex(), "")
         }
 
@@ -194,32 +192,27 @@ class ScriptProcessor(private val mDelegate:ReadiumContext.WebViewDelegate, priv
         private var mEpubRsoInjectCounter:Int = 0
 
         fun injectEpubHtml(data:ByteArray):ByteArray {
-            val htmlText = String(data, Charset.forName(UTF_8))
+            val htmlText = String(data, UTF_8)
 
             var newHtml = htmlText
 
              // Set up the script tags to add to the head
-                        var tagsToInjectToHead = Constants.INJECT_HEAD_EPUB_RSO_1 +
+                        var tagsToInjectToHead = Injections.INJECT_HEAD_EPUB_RSO_1 +
              // Slightly change fake script src url with an
                                 // increasing count to prevent caching of the
                                 // request
-                                String.format(Constants.INJECT_HEAD_EPUB_RSO_2,
+                                String.format(Injections.INJECT_HEAD_EPUB_RSO_2,
             ++mEpubRsoInjectCounter)
              // Checks for the existance of MathML => request
                 // MathJax payload
             if (newHtml.contains("<math") || newHtml.contains("<m:math"))
             {
-                tagsToInjectToHead += Constants.INJECT_HEAD_MATHJAX
+                tagsToInjectToHead += Injections.INJECT_HEAD_MATHJAX
             }
 
             newHtml = HTMLUtil.htmlByInjectingIntoHead(newHtml, tagsToInjectToHead)
 
             return newHtml.toByteArray()
         }
-    }
-
-    companion object {
-        private val TAG = ScriptProcessor::class.java.toString()
-        private val UTF_8 = "utf-8"
     }
 }

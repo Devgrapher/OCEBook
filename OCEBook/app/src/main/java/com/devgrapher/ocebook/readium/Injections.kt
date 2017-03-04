@@ -4,9 +4,8 @@ package com.devgrapher.ocebook.readium
  * Created by Brent on 2/16/17.
  */
 
-object Constants {
+object Injections {
     val ASSET_PREFIX = "file:///android_asset/readium-shared-js/"
-    val READER_SKELETON = "file:///android_asset/readium-shared-js/reader.html"
 
     // Installs "hook" function so that top-level window (application) can later
     // inject the window.navigator.epubReadingSystem into this HTML document's

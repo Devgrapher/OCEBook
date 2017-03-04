@@ -18,9 +18,8 @@ class App : Application() {
 
         val isDebugging: Boolean
             get() {
-                if (sInstance == null) return false
-
-                return sInstance!!.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+                return (sInstance?.applicationInfo?.flags ?: 0 and
+                        ApplicationInfo.FLAG_DEBUGGABLE) != 0
             }
     }
 }

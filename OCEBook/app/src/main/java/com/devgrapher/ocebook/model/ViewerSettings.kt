@@ -26,7 +26,10 @@ package com.devgrapher.ocebook.model
 import org.json.JSONException
 import org.json.JSONObject
 
-class ViewerSettings(val syntheticSpreadMode: ViewerSettings.SyntheticSpreadMode, val scrollMode: ViewerSettings.ScrollMode, val fontSize: Int, val columnGap: Int) {
+class ViewerSettings(val syntheticSpreadMode: ViewerSettings.SyntheticSpreadMode,
+                     val scrollMode: ViewerSettings.ScrollMode,
+                     val fontSize: Int,
+                     val columnGap: Int) {
 
     enum class SyntheticSpreadMode {
         AUTO,

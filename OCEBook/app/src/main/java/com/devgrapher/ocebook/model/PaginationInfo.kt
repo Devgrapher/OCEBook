@@ -12,11 +12,7 @@ import java.util.ArrayList
 
 class PaginationInfo(val pageProgressionDirection: String,
                      val isFixedLayout: Boolean, val spineItemCount: Int) {
-    val openPages: ArrayList<Page>
-
-    init {
-        this.openPages = ArrayList<Page>()
-    }
+    val openPages = ArrayList<Page>()
 
     fun getOpenPages(): MutableList<Page> {
         return openPages

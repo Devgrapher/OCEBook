@@ -18,7 +18,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 
 import com.devgrapher.ocebook.model.OpenPageRequest
-import com.devgrapher.ocebook.model.Page
 import com.devgrapher.ocebook.model.PaginationInfo
 import com.devgrapher.ocebook.model.ViewerSettings
 import com.devgrapher.ocebook.readium.ObjectHolder
@@ -28,11 +27,11 @@ import com.devgrapher.ocebook.util.PaginationPrefs
 import com.devgrapher.ocebook.util.WebViewMotionHandler
 
 import org.readium.sdk.android.Container
-import org.readium.sdk.android.Package
-import org.readium.sdk.android.SpineItem
 
 import java.io.IOException
 import java.io.InputStream
+
+import kotlinx.android.synthetic.main.fragment_web_view.*
 
 
 /**
@@ -44,22 +43,17 @@ import java.io.InputStream
  * create an instance of this fragment.
  */
 open class WebViewFragment : Fragment() {
-
+    private val TAG = WebViewFragment::class.java.toString()
     private var mListener: OnFragmentInteractionListener? = null
     private var mContainer: Container? = null
     private var mLastPageinfo: PaginationPrefs? = null
+
     // protected to be accessed in HiddenRendererFragment
     protected val mReadiumCtx: ReadiumContext by lazy { initReadium() }
-    protected val mViewerSettings: ViewerSettings
+    protected val mViewerSettings = ViewerSettings(
+            ViewerSettings.SyntheticSpreadMode.AUTO,
+            ViewerSettings.ScrollMode.AUTO, 100, 20)
     protected var mContext: Context? = null
-
-    private var mWebView: WebViewEx? = null
-
-    init {
-        mViewerSettings = ViewerSettings(
-                ViewerSettings.SyntheticSpreadMode.AUTO,
-                ViewerSettings.ScrollMode.AUTO, 100, 20)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,13 +67,14 @@ open class WebViewFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val view = inflater!!.inflate(R.layout.fragment_web_view, container, false)
-        mWebView = view.findViewById(R.id.webView) as WebViewEx
+        return view
+    }
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         initWebView()
-
         ObjectHolder.instance.putContext(mReadiumCtx.id, mReadiumCtx)
-
-        return view
     }
 
     private fun initWebView() {
@@ -87,12 +82,12 @@ open class WebViewFragment : Fragment() {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        mWebView!!.settings.javaScriptEnabled = true
-        mWebView!!.settings.mediaPlaybackRequiresUserGesture = false
-        mWebView!!.settings.allowUniversalAccessFromFileURLs = true
-        mWebView!!.setWebViewClient(ReadiumWebViewClient())
-        mWebView!!.setWebChromeClient(WebChromeClient())
-        mWebView!!.setOnTouchListener(
+        webView.settings.javaScriptEnabled = true
+        webView.settings.mediaPlaybackRequiresUserGesture = false
+        webView.settings.allowUniversalAccessFromFileURLs = true
+        webView.setWebViewClient(ReadiumWebViewClient())
+        webView.setWebChromeClient(WebChromeClient())
+        webView.setOnTouchListener(
                 WebViewMotionHandler(mContext!!, object : WebViewMotionHandler.OnMotionListener {
                     override fun onMoveNextPage() {
                         mReadiumCtx.api.openPageRight()
@@ -103,7 +98,7 @@ open class WebViewFragment : Fragment() {
                     }
 
                     override fun onOpenMenu() {
-                        mListener!!.onOpenMenu()
+                        mListener?.onOpenMenu()
                     }
                 }))
     }
@@ -113,7 +108,7 @@ open class WebViewFragment : Fragment() {
             override fun evaluateJavascript(script: String) {
                 runOnUiThread(Runnable {
                     Log.d(TAG, "WebView evaluateJavascript: " + script + "")
-                    mWebView!!.evaluateJavascript(script) {
+                    webView.evaluateJavascript(script) {
                         str -> Log.d(TAG, "WebView evaluateJavascript RETURN: " + str)
                     }
                 })
@@ -129,11 +124,11 @@ open class WebViewFragment : Fragment() {
             }
 
             override fun addJavascriptInterface(jsInterface: ReadiumContext.JsInterface, name: String) {
-                mWebView!!.addJavascriptInterface(jsInterface, name)
+                webView.addJavascriptInterface(jsInterface, name)
             }
 
             override fun loadUrl(url: String) {
-                mWebView!!.loadUrl(url)
+                webView.loadUrl(url)
             }
 
         }, createPageEventListener(), mContainer!!)
@@ -169,17 +164,27 @@ open class WebViewFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        mWebView!!.onPause()
+        webView.onPause()
     }
 
     override fun onResume() {
         super.onResume()
-        mWebView!!.onResume()
+        webView.onResume()
     }
 
     override fun onDetach() {
         super.onDetach()
         mListener = null
+        mContext = null
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (webView.parent as ViewGroup).removeView(webView)
+        webView.removeAllViews()
+        webView.clearCache(true)
+        webView.clearHistory()
+        webView.destroy()
     }
 
     override fun onDestroy() {
@@ -189,18 +194,10 @@ open class WebViewFragment : Fragment() {
             mReadiumCtx.dispose()
         }
         ObjectHolder.instance.removeContext(mReadiumCtx.id)
-
-        (mWebView!!.parent as ViewGroup).removeView(mWebView)
-        mWebView!!.removeAllViews()
-        mWebView!!.clearCache(true)
-        mWebView!!.clearHistory()
-        mWebView!!.destroy()
     }
 
     fun runOnUiThread(action: Runnable) {
-        if (activity != null) {
-            activity.runOnUiThread(action)
-        }
+        activity?.runOnUiThread(action)
     }
 
     /**
@@ -240,11 +237,8 @@ open class WebViewFragment : Fragment() {
         override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse {
             Laz.y { Log.d(TAG, "-------- interceptRequest: " + req.url.toString()) }
 
-            val res = mReadiumCtx.handleWebRequest(req.url.toString())
-            if (res == null)
-                return super.shouldInterceptRequest(view, req)
-
-            return res
+            return mReadiumCtx.handleWebRequest(req.url.toString())
+                    ?: return super.shouldInterceptRequest(view, req)
         }
     }
 
@@ -257,25 +251,18 @@ open class WebViewFragment : Fragment() {
                 runOnUiThread(Runnable {
                     val pckg = mReadiumCtx.pckg
 
-                    // Get last open page number.
-                    mLastPageinfo = PaginationPrefs(mContext!!)
-                    val spine = pckg.spineItems[mLastPageinfo!!.spineIndex]
+                    mContext?.let { context ->
+                        // Get last open page number.
+                        mLastPageinfo = PaginationPrefs(context)
+                        val spine = pckg.spineItems[mLastPageinfo?.spineIndex ?: 0]
 
-                    mReadiumCtx.api.openBook(pckg, mViewerSettings,
-                            OpenPageRequest.fromIdref(spine.idRef))
+                        mReadiumCtx.api.openBook(pckg, mViewerSettings,
+                                OpenPageRequest.fromIdref(spine.idRef))
 
-                    mListener!!.onPackageOpen(mReadiumCtx)
+                        mListener?.onPackageOpen(mReadiumCtx)
+                    }
                 })
             }
-
-            override fun onContentLoaded() {}
-            override fun onPageLoaded() {}
-            override fun onIsMediaOverlayAvailable(available: String) {}
-            override fun onMediaOverlayStatusChanged(status: String) {}
-            override fun onMediaOverlayTTSSpeak() {}
-            override fun onMediaOverlayTTSStop() {}
-            override fun getBookmarkData(bookmarkData: String) {}
-            override fun onSettingsApplied() {}
 
             override fun onPaginationChanged(currentPagesInfo: PaginationInfo) {
                 Laz.y { Log.d(TAG, "onPaginationChanged: " + currentPagesInfo) }
@@ -290,8 +277,8 @@ open class WebViewFragment : Fragment() {
 
                     val spineItem = pckg.getSpineItem(page.idref)
                     val isFixedLayout = spineItem!!.isFixedLayout(pckg)
-                    mWebView!!.settings.builtInZoomControls = isFixedLayout
-                    mWebView!!.settings.displayZoomControls = false
+                    webView.settings.builtInZoomControls = isFixedLayout
+                    webView.settings.displayZoomControls = false
 
                     if (mLastPageinfo != null) {
                         val newPage = mLastPageinfo!!.recalculateSpinePage(
@@ -303,20 +290,21 @@ open class WebViewFragment : Fragment() {
                         // Set null not to reuse.
                         mLastPageinfo = null
                     } else {
-                        PaginationPrefs.save(mContext!!,
-                                page.spineItemIndex,
-                                page.spineItemPageIndex,
-                                page.spineItemPageCount)
+                        mContext?.let {
+                            PaginationPrefs.save(it,
+                                    page.spineItemIndex,
+                                    page.spineItemPageIndex,
+                                    page.spineItemPageCount)
+                        }
                     }
 
-                    mListener!!.onPageChanged(page.spineItemPageIndex, page.spineItemIndex)
+                    mListener?.onPageChanged(page.spineItemPageIndex, page.spineItemIndex)
                 })
             }
         }
     }
 
     companion object {
-        private val TAG = WebViewFragment::class.java.toString()
         private val ARG_CONTAINER_ID = "container"
 
         /**

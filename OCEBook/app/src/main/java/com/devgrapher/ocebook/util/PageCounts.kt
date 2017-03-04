@@ -5,15 +5,11 @@ package com.devgrapher.ocebook.util
  */
 
 class PageCounts(totalCount: Int) {
-    private val mPageCountAccumulates: IntArray
+    private val mPageCountAccumulates = IntArray(totalCount)
     var totalCount: Int = 0
         private set
     var isUpdating = true
         private set
-
-    init {
-        mPageCountAccumulates = IntArray(totalCount)
-    }
 
     fun updatePage(spineIndex: Int, pageCount: Int) {
         mPageCountAccumulates[spineIndex] = totalCount
