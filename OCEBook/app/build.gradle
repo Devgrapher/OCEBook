@@ -23,6 +23,7 @@ dependencies {
     compile 'com.android.support:support-v4:25.1.1'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
 
 task buildCssAssets(type: Copy) {
@@ -49,6 +50,7 @@ buildAssets.dependsOn "buildCssAssets",
         "buildMultipleBundleAssets"
 
 apply from: 'build_epubReadingSystem.gradle'
+apply plugin: 'kotlin-android'
 
 tasks.whenTaskAdded { task ->
     def taskName = task.name
